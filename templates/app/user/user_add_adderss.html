@@ -1,0 +1,87 @@
+
+{% extends 'app/base.html' %}
+{% load static %}
+{% block tite %}
+  主页
+{% endblock %}
+{% block cssjs %}
+    <script type="text/javascript" src="{% static 'app/js/jquery-ui.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'app/js/slide.js' %}"></script>
+
+
+    <script>
+            function a() {
+
+                 var recipients = $('#recipients').val().trim();
+                 var addersss = $('#addersss').val().trim();
+                 var postcode = $('#postcode').val().trim();
+                 var tel = $('#tel').val().trim();
+                 var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+                 $.ajax({
+                     url: '/app/add_adderss/',
+                     type: 'POST',
+                     dataType: 'json',
+                     headers: {'X-CSRFToken': csrf},
+                     data: {'recipients': recipients,
+                            'addersss': addersss,
+                            'postcode': postcode,
+                            'tel':tel},
+                     success: function (data) {
+                          $(window.onbeforeunload = function() {
+                             window.opener.location.reload();
+                         }
+                         )
+                         window.opener=null;
+                         window.open('','_self');
+                         window.close();
+                     },
+                     error: function (data) {
+                     }
+                 })
+            }
+        </script>
+{% endblock %}
+{% block a %}
+{{ block.super }}
+{% load static %}
+
+
+
+
+
+
+<h3 class="common_title2">添加新地址</h3>
+<div class="site_con">
+
+        {% csrf_token %}
+        <div class="form_group">
+            <label>收件人：</label>
+            <input type="text" id="recipients">
+        </div>
+        <div class="form_group form_group2">
+            <label>详细地址：</label>
+            <textarea  id="addersss" class="site_area"></textarea>
+        </div>
+        <div class="form_group">
+            <label>邮编：</label>
+            <input type="text" id="postcode">
+        </div>
+        <div class="form_group">
+            <label>手机：</label>
+            <input type="text" id="tel">
+        </div>
+          <input type="submit" value="提交" onclick="a()" class="info_submit" />
+
+
+
+</div>
+
+{% endblock %}
+
+
+
+
+
+
+
+

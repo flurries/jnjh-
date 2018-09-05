@@ -1,0 +1,147 @@
+{% extends 'app/base_main.html' %}
+{% load static %}
+{% block tite %}
+  主页
+{% endblock %}
+{% block cssjs %}
+    <script type="text/javascript" src="{% static 'app/js/jquery-ui.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'app/js/slide.js' %}"></script>
+{% endblock %}
+{% block a %}
+{{ block.super }}
+{% load static %}
+    {#  搜索 #}
+	<div class="search_bar clearfix">
+		<a href="index.html" class="logo fl"><img src="/static/app/images/logo.png"></a>
+		<div class="search_con fl">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>
+		<div class="guest_cart fr">
+			<a href="#" class="cart_name fl">我的购物车</a>
+			<div class="goods_count fl" id="show_count">{{ i }}</div>
+		</div>
+	</div>
+    {# 轮播图导航版 #}
+	<div class="navbar_con">
+		<div class="navbar">
+			<h1 class="fl">全部商品分类</h1>
+			<ul class="navlist fl">
+				<li><a href="">首页</a></li>
+				<li class="interval">|</li>
+				<li><a href="">手机生鲜</a></li>
+				<li class="interval">|</li>
+				<li><a href="">抽奖</a></li>
+			</ul>
+		</div>
+	</div>
+    {# 分类  、   轮播 #}
+	<div class="center_con clearfix">
+		<ul class="subnav fl">
+			<li><a href="#model01" class="fruit">新鲜水果</a></li>
+			<li><a href="#model02" class="seafood">海鲜水产</a></li>
+			<li><a href="#model03" class="meet">猪牛羊肉</a></li>
+			<li><a href="#model04" class="egg">禽类蛋品</a></li>
+			<li><a href="#model05" class="vegetables">新鲜蔬菜</a></li>
+			<li><a href="#model06" class="ice">速冻食品</a></li>
+		</ul>
+        {# 轮播 #}
+		<div class="slide fl">
+			<ul class="slide_pics">
+            {% for img in imgs %}
+				<li><img src="/media/{{ img.caeimg }}" alt="幻灯片"></li>
+            {% endfor %}
+			</ul>
+
+			<div class="prev"></div>
+			<div class="next"></div>
+			<ul class="points"></ul>
+		</div>
+        {# 轮播侧边图 #}
+		<div class="adv fl">
+			<a href="#"><img src="/static/app/images/adv01.jpg"></a>
+			<a href="#"><img src="/static/app/images/adv02.jpg"></a>
+		</div>
+	</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% for key,value in typegoods.items %}
+	<div class="list_model">
+		<div class="list_title clearfix">
+			<h3 class="fl" id="model0{{ forloop.counter }}">{{ key }}</h3>
+{#			<div class="subtitle fl">#}
+{#				<span>|</span>#}
+{#				<a href="#">鲜芒</a>#}
+{#				<a href="#">加州提子</a>#}
+{#				<a href="#">亚马逊牛油果</a>#}
+{#			</div>#}
+			<a href="{% url 'app:list' %}?type={{ key }}" class="goods_more fr" id="fruit_more">查看更多 ></a>
+		</div>
+        {# 水果 #}
+		<div class="goods_con clearfix">
+			<div class="goods_banner fl"><img src="/media/{{ value.0.categoryid.goodclassimg }}"></div>
+			<ul class="goods_list fl">
+				{% for good in value %}
+                <li>
+					<h4><a href="#">{{ good.goodsname }}</a></h4>
+					<a href="{% url 'app:detail' %}?good_id={{ good.id }}"><img src="/media/{{ good.goodsimg }}"></a>
+					<div class="prize">¥ {{ good.pirce }}</div>
+				</li>
+
+                {% endfor %}
+			</ul>
+		</div>
+	</div>
+
+{% endfor %}
+
+
+
+	<div class="footer">
+		<div class="foot_link">
+			<a href="#">关于我们</a>
+			<span>|</span>
+			<a href="#">联系我们</a>
+			<span>|</span>
+			<a href="#">招聘人才</a>
+			<span>|</span>
+			<a href="#">友情链接</a>		
+		</div>
+		<p>CopyRight © 2016 北京天天生鲜信息技术有限公司 All Rights Reserved</p>
+		<p>电话：010-****888    京ICP备*******8号</p>
+	</div>
+	<script type="text/javascript" src="js/slideshow.js"></script>
+	<script type="text/javascript">
+		BCSlideshow('focuspic');
+		var oFruit = document.getElementById('fruit_more');
+		var oShownum = document.getElementById('show_count');
+
+		var hasorder = localStorage.getItem('order_finish');
+
+		if(hasorder)
+		{
+			oShownum.innerHTML = '2';
+		}
+
+		oFruit.onclick = function(){
+			window.location.href = 'list.html';
+		}
+	</script>
+
+
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'app/base.html' %}
+{% load static %}
+{% block tite %}
+  主页
+{% endblock %}
+{% block cssjs %}
+    <script type="text/javascript" src="{% static 'app/js/jquery-ui.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'app/js/slide.js' %}"></script>
+    <script>
+
+
+
+        function use(site_id,order_id) {
+            $.get('/app/use_site/', {'site_id': site_id, 'order_id': order_id}, function (data) {
+                if (data.code == '200'){
+                     $(window.onbeforeunload = function() {
+                             window.opener.location.reload();
+                         }
+                         )
+                         window.opener=null;
+                         window.open('','_self');
+                         window.close();
+                }
+            })
+        }
+
+    </script>
+{% endblock %}
+{% block a %}
+{{ block.super }}
+{% load static %}
+
+            {% csrf_token %}
+            {% for site in sites %}
+            <div class="site_con" id="site_{{ site.id }}">
+
+                <dl>
+                    <dt>地址{{ forloop.counter }}
+
+                        {% if  site.is_select == '1'  %}
+                        <span id="default_{{ site.id }}">
+                        <span style="margin-left: 100px;color: #ff8800">当前地址{{ order_id }}</span>
+                        </span>
+                        {% else %}
+                            <sapn id="replace_{{ site.id }}">
+
+                                <button onclick="use({{ site.id }},'{{ order_id }}')" style="margin-left: 90px; background-color: aquamarine">使用该地址</button>
+                            </sapn>
+                         {% endif %}
+                    </dt>
+                    <dd id="siteadd_{{ site.id }}">{{ site.addersss }} （{{ site.recipients }} 收） {{ site.tel }}
+                    </dd>
+
+                </dl>
+				</div>
+            {% endfor %}
+
+
+
+
+{% endblock %}

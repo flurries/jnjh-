@@ -1,0 +1,196 @@
+{% extends 'app/base_main.html' %}
+{% load static %}
+{% block tite %}
+  主页
+{% endblock %}
+{% block cssjs %}
+    <script type="text/javascript" src="{% static 'app/js/jquery-ui.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'app/js/slide.js' %}"></script>
+    <script>
+        function del_adderss(site_id) {
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+            $.ajax({
+                url: '/app/deltet_adderss/',
+                type: 'POST',
+                dataType: 'json',
+                headers: {'X-CSRFToken': csrf},
+                data: {'site_id': site_id},
+                success: function (data) {
+                    if (data.code == '200'){
+                        $('#site_'+site_id).remove()
+                    }
+                },
+                error: function (data) {
+                }
+            })
+        }
+
+        function mod_adderss(site_id) {
+
+            $.get('/app/site/', {'site_id': site_id}, function (data) {
+                if(data.code == '200'){
+                    $('#recipients').val(data.recipients)
+                    $('#addersss').val(data.addersss)
+                    $('#id').html(site_id)
+                    $('#postcode').val(data.postcode)
+                    $('#tel').val(data.tel)
+                }
+            })
+        }
+
+        function mod_site() {
+
+            var site_id = $('#id').html()
+            var recipients = $('#recipients').val().trim();
+            var addersss = $('#addersss').val().trim();
+            var postcode = $('#postcode').val().trim();
+            var tel = $('#tel').val().trim();
+            var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+            $.ajax({
+                url: '/app/mod_site/',
+                type: 'POST',
+                dataType: 'json',
+                headers: {'X-CSRFToken': csrf},
+                data: {'recipients': recipients,
+                            'addersss': addersss,
+                            'postcode': postcode,
+                            'tel':tel,
+                            'site_id': site_id},
+                success: function (data) {
+                    if (data.code == '200'){
+                        $('#id').html('')
+                        $('#recipients').val('')
+                        $('#addersss').val('')
+                        $('#postcode').val('')
+                        $('#tel').val('')
+                        $('#siteadd_'+site_id).html(data.addersss+'（'+data.recipients +'收）'+ data.tel)
+                    }
+                },
+                error: function (data) {
+                }
+            })
+        }
+        function use(site_id) {
+            $.get('/app/use/', {'site_id': site_id}, function (data) {
+                if (data.code == '200'){
+                    location.reload();
+                }
+            })
+        }
+
+
+
+
+
+    </script>
+{% endblock %}
+{% block a %}
+{{ block.super }}
+{% load static %}
+
+
+
+	<div class="search_bar clearfix">
+		<a href="{% url 'app:index' %}" class="logo fl"><img src="{% static 'app/images/logo.png' %}"></a>
+		<div class="sub_page_name fl">|&nbsp;&nbsp;&nbsp;&nbsp;用户中心</div>
+		<div class="search_con fr">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>		
+	</div>
+
+	<div class="main_con clearfix">
+		<div class="left_menu_con clearfix">
+			<h3>用户中心</h3>
+			<ul>
+				<li><a href="{% url 'app:user_center_info' %}">· 个人信息</a></li>
+				<li><a href="{% url 'app:user_center_order' %}">· 全部订单</a></li>
+				<li><a href="{% url 'app:user_center_site' %}">· 收货地址</a></li>
+			</ul>
+		</div>
+		<div class="right_content clearfix">
+				<h3 class="common_title2" style="float: left">收货地址</h3>
+                <button onclick="openwindows()" style="float: right; font-size: 20px">添加地址</button><br><br><br>
+            <script>
+                function openwindows() {
+                           window.open('{% url 'app:add_adderss' %}','_blank','width=600,height=400,top=200px,left=400px')
+                }
+            </script>
+            {% csrf_token %}
+            {% for site in sites %}
+            <div class="site_con" id="site_{{ site.id }}">
+
+                <dl>
+                    <dt>地址{{ forloop.counter }}
+
+                        {% if site.is_default == '1' %}
+                        <span id="default_{{ site.id }}">
+                        <span style="margin-left: 100px;color: #ff8800">当前默认地址</span>
+                        </span>
+                        {% endif %}
+                        <button onclick="mod_adderss({{ site.id }})" style="float: right;margin-right: 100px">编辑</button>
+                        <button onclick="del_adderss({{ site.id }})" style="float: right;margin-right: 10px">删除</button>
+                        {% if site.is_default == '0' %}
+                            <sapn id="replace_{{ site.id }}">
+                                <button onclick="use({{ site.id }})" style="margin-left: 90px; background-color: aquamarine">修改为默认地址</button>
+                            </sapn>
+
+                         {% endif %}
+                    </dt>
+                    <dd id="siteadd_{{ site.id }}">{{ site.addersss }} （{{ site.recipients }} 收） {{ site.tel }}
+                    </dd>
+
+                </dl>
+				</div>
+            {% endfor %}
+
+
+
+
+            <h3 class="common_title2">编辑地址</h3>
+				<div class="site_con">
+
+						 {% csrf_token %}
+                        <span id="id" hidden="hidden"></span>
+                        <div class="form_group">
+                            <label>收件人：</label>
+                            <input type="text" id="recipients" value="">
+                        </div>
+                        <div class="form_group form_group2">
+                            <label>详细地址：</label>
+                            <textarea  id="addersss" class="site_area"></textarea>
+                        </div>
+                        <div class="form_group">
+                            <label>邮编：</label>
+                            <input type="text" id="postcode" value="">
+                        </div>
+                        <div class="form_group">
+                            <label>手机：</label>
+                            <input type="text" id="tel" value="">
+                        </div>
+
+
+						<input type="submit" onclick="mod_site()" value="提交" class="info_submit">
+
+				</div>
+
+		</div>
+	</div>
+
+
+
+	<div class="footer">
+		<div class="foot_link">
+			<a href="#">关于我们</a>
+			<span>|</span>
+			<a href="#">联系我们</a>
+			<span>|</span>
+			<a href="#">招聘人才</a>
+			<span>|</span>
+			<a href="#">友情链接</a>		
+		</div>
+		<p>CopyRight © 2016 北京天天生鲜信息技术有限公司 All Rights Reserved</p>
+		<p>电话：010-****888    京ICP备*******8号</p>
+	</div>
+	
+{% endblock %}

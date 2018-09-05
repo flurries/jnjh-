@@ -1,0 +1,39 @@
+{% extends 'backweb/backbash.html' %}
+{% block title %}
+    后台添加轮播图片
+{% endblock %}
+{% block cssjs %}
+{% endblock %}
+
+{% block content %}
+
+<section class="rt_wrap content mCustomScrollbar">
+    <div class="rt_content">
+        <div class="page_title">
+            <h0 class="fl">轮播图片示例</h0>
+        </div>
+        <section>
+            <ul class="ulColumn2">
+                <form action="" enctype="multipart/form-data" method="post">
+                    {% csrf_token %}
+                    {#  图片  #}
+                    <li>
+                        <span class="item_name" style="width:120px;">上传图片：</span>
+                        <label class="uploadImg">
+                            <input type="file" name="filename"/>
+                            <span>上传图片</span>
+                        </label>
+                    </li>
+                   <input style="margin-left: 300px" type="submit"  class="link_btn"/>
+                 </form>
+            </ul>
+        </section>
+    </div>
+</section>
+
+    {% load static %}
+<script src={% static 'backweb/js/ueditor.config.js' %}></script>
+<script src={% static 'backweb/js/ueditor.all.min.js'%}></script>
+
+
+{% endblock %}

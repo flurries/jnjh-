@@ -1,0 +1,47 @@
+{% extends 'backweb/backbash.html' %}
+{% block title %}
+    后台管理添加商品分类
+{% endblock %}
+{% block cssjs %}
+{% endblock %}
+
+{% block content %}
+
+<section class="rt_wrap content mCustomScrollbar">
+    <div class="rt_content">
+        <div class="page_title">
+            <h0 class="fl">商品分类</h0>
+        </div>
+        <section>
+            <ul class="ulColumn2">
+                <form action="" enctype="multipart/form-data" method="post">
+                    {% csrf_token %}
+                    {# 文章标题 #}
+                    <li>
+                        <span class="item_name" style="width:120px;">分类名：</span>
+                        <input type="text" hidden="hidden" value="{{ type.id }}" name="id" />
+                        <input type="text" name="type_name" class="textbox textbox_295" value="{{ type.goodclassname }}" />
+                    </li>
+                    <li>
+                        {% load static %}
+                        <span class="item_name" style="width:120px;">上传图片：</span>
+                        <img src="/media/{{ type.goodclassimg }}" width="150" height="100"/>
+                        <label class="uploadImg">
+                            <input type="file" name="filename"/>
+                            <span>上传图片</span>
+                        </label>
+                    </li>
+                    <input type="submit"  class="link_btn"/>
+                 </form>
+            </ul>
+        </section>
+    </div>
+</section>
+
+
+    {% load static %}
+<script src={% static 'backweb/js/ueditor.config.js' %}></script>
+<script src={% static 'backweb/js/ueditor.all.min.js'%}></script>
+
+
+{% endblock %}

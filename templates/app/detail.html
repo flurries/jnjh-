@@ -1,0 +1,149 @@
+{% extends 'app/base_main.html' %}
+{% load static %}
+{% block tite %}
+  主页
+{% endblock %}
+{% block cssjs %}
+    <script type="text/javascript" src="{% static 'app/js/function.js' %}"></script>
+    <script type="text/javascript" src="{% static 'app/js/jquery-1.12.4.min.js' %}"></script>
+
+{% endblock %}
+{% block a %}
+{{ block.super }}
+{% load static %}
+
+
+
+	<div class="search_bar clearfix">
+		<a href="index.html" class="logo fl"><img src="/static/app/images/logo.png"></a>
+		<div class="search_con fl">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>
+		<div class="guest_cart fr">
+			<a href="cart/cart.html" class="cart_name fl">我的购物车</a>
+			<div class="goods_count fl" id="show_count">{{ i }}</div>
+		</div>
+	</div>
+
+	<div class="navbar_con">
+		<div class="navbar clearfix">
+			<div class="subnav_con fl">
+				<h1>全部商品分类</h1>	
+				<span></span>			
+				<ul class="subnav">
+					<li><a href="#" class="fruit">新鲜水果</a></li>
+					<li><a href="#" class="seafood">海鲜水产</a></li>
+					<li><a href="#" class="meet">猪牛羊肉</a></li>
+					<li><a href="#" class="egg">禽类蛋品</a></li>
+					<li><a href="#" class="vegetables">新鲜蔬菜</a></li>
+					<li><a href="#" class="ice">速冻食品</a></li>
+				</ul>
+			</div>
+			<ul class="navlist fl">
+				<li><a href="">首页</a></li>
+				<li class="interval">|</li>
+				<li><a href="">手机生鲜</a></li>
+				<li class="interval">|</li>
+				<li><a href="">抽奖</a></li>
+			</ul>
+		</div>
+	</div>
+
+
+
+	<div class="breadcrumb">
+		<a href="#">全部分类</a>
+		<span>></span>
+		<a href="#">新鲜水果</a>
+		<span>></span>
+		<a href="#">商品详情</a>
+	</div>
+    {% csrf_token %}
+
+	<div class="goods_detail_con clearfix">
+		<div class="goods_detail_pic fl"><img style="width:350px;height:350px;" src="/media/{{ good.goodsimg }}"></div>
+
+		<div class="goods_detail_list fr">
+
+			<h3>{{ good.goodsname }}</h3>
+			<p>{{ good.introduction }}</p>
+			<div class="prize_bar">
+				<span class="show_pirze">¥<em>{{ good.pirce }}</em></span>
+				<span class="show_unit">规  格：{{ good.specifics }}</span>
+			</div>
+			<div class="goods_num clearfix">
+				<div class="num_name fl">数 量：</div>
+
+
+				<div class="num_add fl" >
+					<input type="text" id="cartnum" class="num_show fl" value="1">
+					<a id="addNum" onclick="add({{ good.id }})" href="javascript:;" class="add fr">+</a>
+					<a id="minusNum" onclick="minus({{ good.id }})" href="javascript:;" class="minus fr">-</a>
+                </div>
+
+
+
+			<div class="total">总价：<em id="total_value">{{ good.pirce }}</em></div>
+			<div class="operate_btn">
+				<a href="javascript:;" class="buy_btn" onclick="shop({{ good.id }})">立即购买</a>
+				<a href="javascript:;" class="add_cart" id="add_cart" onclick="addcart({{ good.id }})">加入购物车</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="main_wrap clearfix">
+		<div class="l_wrap fl clearfix">
+			<div class="new_goods">
+				<h3>新品推荐</h3>
+				<ul>
+                    {% for good in goods %}
+					<li>
+						<a href="{% url 'app:detail' %}?good_id={{ good.id }}"><img src="/media/{{ good.goodsimg }}"></a>
+						<h4><a href="{% url 'app:detail' %}?good_id={{ good.id }}">{{ good.goodsname }}</a></h4>
+						<div class="prize">￥{{ good.pirce }}</div>
+					</li>
+                    {% endfor %}
+
+				</ul>
+			</div>
+		</div>
+
+		<div class="r_wrap fr clearfix">
+			<ul class="detail_tab clearfix">
+				<li class="active">商品介绍</li>
+				<li>评论</li>
+			</ul>
+
+			<div class="tab_content">
+				<dl>
+					<dt>商品详情：</dt>
+					<dd>{{ good.introductions|safe }} </dd>
+				</dl>
+			</div>
+
+		</div>
+	</div>
+
+	<div class="footer">
+		<div class="foot_link">
+			<a href="#">关于我们</a>
+			<span>|</span>
+			<a href="#">联系我们</a>
+			<span>|</span>
+			<a href="#">招聘人才</a>
+			<span>|</span>
+			<a href="#">友情链接</a>		
+		</div>
+		<p>CopyRight © 2016 北京天天生鲜信息技术有限公司 All Rights Reserved</p>
+		<p>电话：010-****888    京ICP备*******8号</p>
+	</div>
+	<div class="add_jump"></div>
+    <script>
+
+
+    </script>
+
+
+
+{% endblock %}

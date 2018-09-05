@@ -1,0 +1,69 @@
+{% extends 'backweb/backbash.html' %}
+{% block title %}
+    后台管理分类
+{% endblock %}
+{% block cssjs %}
+{% endblock %}
+{% block content %}
+{# 类型展示 #}
+<section class="rt_wrap content mCustomScrollbar">
+    <div class="rt_content">
+        <div class="page_title">
+            <h2 class="fl">类别展示</h2>
+                <a class="fr top_rt_btn"  href="{% url 'backweb:add_type' %}" >添加分类</a>
+        </div>
+        {# 表格 #}
+        <table class="table">
+            {# 表格表头 #}
+            <tr>
+                <th>编号</th>
+                <th>商品分类</th>
+                <th>操作</th>
+
+            </tr>
+             {# 表格内容 #}
+        {% for type in page %}
+            <tr>
+                {# 编号 #}
+                <td style="text-align: center"><b>{{ forloop.counter }}</b></td>
+                {# 商品名称 #}
+                <td style="text-align: center" ><b>{{ type.goodclassname  }}</b></td>
+                {# 编辑删除 #}
+                <td class="center">
+                    <a href="{% url 'backweb:alter_type' %}?id={{ type.id }}" title="编辑" class="link_icon">&#47;</a>
+                    <a href="{% url 'backweb:del_type' %}?id={{ type.id }}" title="删除" class="link_icon">&#100;</a>
+                </td>
+             <tr>
+             {% endfor %}
+        </table>
+        {# 分页 #}
+        <aside class="paging">
+            <a href="{% url 'backweb:good_type' %}?page=1">第一页</a>
+
+            {% if page.has_previous %}
+                <a href="{% url 'backweb:good_type' %}?page={{ page.previous_page_number }}">上一页</a>
+            {% endif %}
+
+            {% if page.has_previous %}
+                <a href="{% url 'backweb:good_type' %}?page={{ page.previous_page_number }}">{{ page.previous_page_number }}</a>
+            {% endif %}
+                <a style="color:black;" href="#">{{ page.number }}</a>
+            {% if page.has_next %}
+                <a href="{% url 'backweb:good_type' %}?page={{ page.next_page_number }}">{{ page.next_page_number }}</a>
+            {% endif %}
+
+
+
+            {% if page.has_next %}
+                  <a href="{% url 'backweb:good_type' %}?page={{ page.next_page_number }}">下一页</a>
+            {% endif %}
+            <a href="{% url 'backweb:good_type' %}?page={{ page.paginator.num_pages }}">最后一页</a>
+
+
+        </aside>
+    </div>
+</section>
+
+{% endblock %}
+
+

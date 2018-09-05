@@ -1,0 +1,185 @@
+{% extends 'app/base_main.html' %}
+{% load static %}
+{% block tite %}
+  购物车
+{% endblock %}
+{% block cssjs %}
+    <script type="text/javascript" src="{% static 'app/js/jquery-ui.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'app/js/slide.js' %}"></script>
+    <script type="text/javascript" src="{% static 'app/js/function.js' %}"></script>
+    <script type="text/javascript" src="js/jquery-1.12.2.js"></script>
+	<script>
+		function order_pay(order_id, num) {
+		    var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+            $.ajax({
+                url: '/app/order_pay/',
+                type: 'POST',
+                dataType: 'json',
+                headers: {'X-CSRFToken': csrf},
+                data: {'order_id':order_id, 'num': num},
+                success: function (data) {
+                    if (data.code == '200'){
+			            $('.popup_con').fadeIn('fast', function() {
+				            setTimeout(function(){
+					            $('.popup_con').fadeOut('fast',function(){
+						            window.location.href = '/app/index/';
+					                });
+                            },2000)})
+                        }
+                    },
+                error: function (data) {
+                }
+            })
+        }
+
+
+        // 支付未支付订单
+        function order_status(order_id,num) {
+		    var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+            $.ajax({
+                url: '/app/order_status/',
+                type: 'POST',
+                dataType: 'json',
+                headers: {'X-CSRFToken': csrf},
+                data: {'order_id':order_id, 'num': num},
+                success: function (data) {
+                    if (data.code == '200' ){
+			            $('.popup_con').fadeIn('fast', function() {
+				            setTimeout(function(){
+					            $('.popup_con').fadeOut('fast',function(){
+						            window.location.href = '/app/index/';
+					                });
+                            },2000)})
+                        }else if(data.code == '2000') {
+                        window.location.href = '/app/index/'
+                    }
+                    },
+                error: function (data) {
+                }
+            })
+        }
+	</script>
+{% endblock %}
+{% block a %}
+{{ block.super }}
+{% load static %}
+
+
+	<div class="search_bar clearfix">
+		<a href="{% url 'app:index' %}" class="logo fl"><img src="{% static 'app/images/logo.png' %}"></a>
+		<div class="sub_page_name fl">|&nbsp;&nbsp;&nbsp;&nbsp;提交订单</div>
+		<div class="search_con fr">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>		
+	</div>
+	
+	<h3 class="common_title">确认收货地址</h3>
+
+	<div class="common_list_con clearfix">
+		<dl>
+			<dt>寄送到：</dt>
+			<dd><input type="radio" name="" checked="">{{ adderss.addersss }} ({{ adderss.recipients }} 收) {{ tel }}</dd>
+		</dl>
+		<a href="#"  onclick="openwindowss()" class="edit_site">修改收货地址</a>
+            <script>
+                function openwindowss() {
+                           window.open('{% url 'app:select_adderss' %}?order_id={{ order_id }}','_blank','width=600,height=400,top=200px,left=400px')
+                }
+            </script>s
+
+	</div>
+	
+	<h3 class="common_title">支付方式</h3>	
+	<div class="common_list_con clearfix">
+		<div class="pay_style_con clearfix">
+			<input type="radio" name="pay_style" checked>
+			<label class="cash">货到付款</label>
+			<input type="radio" name="pay_style">
+			<label class="weixin">微信支付</label>
+			<input type="radio" name="pay_style">
+			<label class="zhifubao"></label>
+			<input type="radio" name="pay_style">
+			<label class="bank">银行卡支付</label>
+		</div>
+	</div>
+
+	<h3 class="common_title">商品列表</h3>
+	
+	<div class="common_list_con clearfix">
+		<ul class="goods_list_th clearfix">
+			<li class="col01">商品名称</li>
+			<li class="col02">商品单位</li>
+			<li class="col03">商品价格</li>
+			<li class="col04">数量</li>
+			<li class="col05">小计</li>		
+		</ul>
+
+
+
+        {% for cart in carts %}
+		<ul class="goods_list_td clearfix">
+			<li class="col01">{{ forloop.counter}}</li>
+			<li class="col02"><img src="/media/{{ cart.goods.goodsimg }}"></li>
+			<li class="col03">{{ cart.goods.goodsname }}</li>
+			<li class="col04">{{ cart.goods.specifics }}</li>
+			<li class="col05">{{ cart.goods.pirce }}元</li>
+			<li class="col06">{{ cart.c_num }}{{ cart.goods_num }}</li>
+			<li class="col07">{{ cart.money }}{{ cart.goods_money }}元</li>
+
+		</ul>
+        {% endfor %}
+	</div>
+	<h3 class="common_title">总金额结算</h3>
+	<div class="common_list_con clearfix">
+		<div class="settle_con">
+			<div class="total_goods_count">共<em>{{ num }}</em>件商品，总金额<b>{{ sum_money }}元</b></div>
+			<div class="transit">运费：<b>10元</b></div>
+			<div class="total_pay">实付款：<b>{{ sum_money|add:10 }}</b></div>
+		</div>
+	</div>
+	<div class="order_submit clearfix">
+        {% csrf_token %}
+
+        {% if site == '1' %}
+            {% if pay == '0' %}
+                <a><button onclick="order_pay('{{ order_id }}',1)" >支付</button></a>
+                <a><button onclick="order_pay('{{ order_id }}',0)" style="margin-right:20px ">稍后支付</button></a>
+            {% else %}
+                <a><button onclick="order_status('{{ order_id }}',1)" >支付</button></a>
+                <a><button onclick="order_status('{{ order_id }}',2)" style="margin-right:20px ">稍后支付</button></a>
+            {% endif %}
+        {% else %}
+            <a><button onclick="openwindows()" >支付</button></a>
+            <a><button onclick="openwindows()" style="margin-right:20px ">稍后支付</button></a>
+        {% endif %}
+	</div>
+    <script>
+        function openwindows() {
+            window.open('{% url 'app:add_adderss' %}','_blank','width=600,height=400,top=200px,left=400px')
+        }
+    </script>
+
+	<div class="footer">
+		<div class="foot_link">
+			<a href="#">关于我们</a>
+			<span>|</span>
+			<a href="#">联系我们</a>
+			<span>|</span>
+			<a href="#">招聘人才</a>
+			<span>|</span>
+			<a href="#">友情链接</a>		
+		</div>
+		<p>CopyRight © 2016 北京天天生鲜信息技术有限公司 All Rights Reserved</p>
+		<p>电话：010-****888    京ICP备*******8号</p>
+	</div>
+
+	<div class="popup_con">
+		<div class="popup">
+			<p>订单提交成功！</p>
+		</div>
+		
+		<div class="mask"></div>
+	</div>
+
+{% endblock %}

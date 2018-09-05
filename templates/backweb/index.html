@@ -1,0 +1,170 @@
+{% extends 'backweb/backbash.html' %}
+{% block title %}
+    后台管理主页
+{% endblock %}
+{% block cssjs %}
+{% endblock %}
+{% block content %}
+{# 文章展示 #}
+<section class="rt_wrap content mCustomScrollbar">
+    <div class="rt_content">
+        <div class="page_title">
+            <h2 class="fl">商品分页展示</h2>
+            {# 权限判定 #}
+                <a class="fr top_rt_btn"  href="{% url 'backweb:add' %}" >添加商品</a>
+        </div>
+        {# 下拉栏 #}
+        <section class="mtb">
+            <select style="height: 38px" class="select" id="select">
+                <option>分类</option>
+                {% for class in classfiy %}
+                    {% if class.goodclassname == modl %}
+                        <option selected="selected">{{ class.goodclassname }}</option>
+                    {% else %}
+                        <option>{{ class.goodclassname }}</option>
+                    {% endif %}
+                {% endfor %}
+            {% csrf_token %}
+            <input  id="keyboard" class="textbox textbox_225" type="text" placeholder="输入标题关键...">
+            <input name="Submit" class="group_btn" value="搜索" type="submit">
+            </select>
+        </section>
+        {# 下拉栏js #}
+        <script>
+            window.onload = function() {
+                var selectObj = document.getElementById("select");
+                console.log('页面加载完成加载下拉框触发事件')
+                selectObj.onchange = function() {
+                    console.log($('select option:checked').text())
+                    location.href = '{% url 'backweb:index' %}?page=1&type=' + $("select option:checked").text()+'&search={{ search }}'
+                }
+            }
+        </script>
+         搜索
+        <script>
+            function s() {
+                alert('qwewqe')
+                var fruitName = $("#keyboard").val().trim();
+                location.href = '{% url 'backweb:index' %}?page=1&type={{ modl }}&search=' + fruitName
+            }
+            $(".group_btn").on("click", s);
+            {# 是否删除 #}
+             function a(good_id) {
+                 $.post('/backweb/is_delete/', {'id': good_id}, function (data) {
+                     if(data.states == '0'){
+                         $('#del_'+good_id).html('&#89;')
+                     }else {
+                           $('#del_'+good_id).html('&#88;')
+                     }
+                 })
+             }
+            {# 是否推荐 #}
+            function b(good_id) {
+                $.post('/backweb/is_select/', {'id': good_id}, function (data) {
+                    if(data.states == '0'){
+                        $('#sel_'+good_id).html('&#88;')
+                    }else {
+                        $('#sel_'+good_id).html('&#89;')
+                    }
+                 })
+             }
+            function isdel(good_id) {
+                $.post('/backweb/isd_el/', {'id': good_id}, function(data){
+                    if (data.code == '200'){
+                        alert('删除成功')
+                        location.reload();
+                    }
+                })
+
+            }
+        </script>
+        {# 表格 #}
+        <table class="table">
+            {# 表格表头 #}
+            <tr>
+                <th>编号</th>
+                <th>商品名称</th>
+                <th>图片</th>
+                <th>类型</th>
+                <th>规格</th>
+                <th>单价</th>
+                <th>是否展示</th>
+                <th>是否推荐</th>
+                <th>操作</th>
+
+            </tr>
+             {# 表格内容 #}
+        {% for good in page %}
+            <tr>
+                {# 编号 #}
+                <td style="text-align: center">{{ forloop.counter }}</td>
+                {# 商品名称 #}
+                <td>{{ good.goodsname }}</td>
+               {# 图片 #}
+               <td ><img src="/media/{{ good.goodsimg }}" width="50" height="50"/></td>
+                {# 类型 #}
+                <td class="center"><strong >{{ good.categoryid.goodclassname }}</strong></td>
+                {# 规格 #}
+                <td class="center"><strong >{{ good.specifics }}</strong></td>
+                {# 单价 #}
+                <td class="center"><strong >{{ good.pirce }}</strong></td>
+                {# 是否展示 #}
+                <td class="center" id="is_delete">{{ good.is_delete }}
+                    {% if good.is_delete == '0' %}
+                        <a id="del_{{ good.id }}" class="link_icon" onclick="a({{ good.id }})" >&#89;</a>
+                    {% else %}
+                        <a id="del_{{ good.id }}" class="link_icon" onclick="a({{ good.id }})" > &#88;</a>
+                    {% endif %}
+                </td>
+                {# 是否推荐  #}
+                <td class="center" id="is_recommend">{{ good.recommend }}
+                    {% if good.recommend == '1' %}
+                        <a class="link_icon" id="sel_{{ good.id }}"  onclick="b({{ good.id }})" >&#89;</a>
+                    {% else %}
+                        <a class="link_icon" id="sel_{{ good.id }}"  onclick="b({{ good.id }})" >&#88;</a>
+                    {% endif %}
+                </td>
+                {# 编辑删除 #}
+                <td class="center">
+                    <a href="/backweb/alter/?id={{ good.id }}" title="编辑" class="link_icon">&#47;</a>
+                    <a onclick="isdel({{ good.id }})" title="删除" class="link_icon">&#100;</a>
+                </td>
+             <tr>
+             {% endfor %}
+        </table>
+        {# 分页 #}
+        <aside class="paging">
+            <a href="{% url 'backweb:index' %}?page=1&type={{ modl }}&search={{ search }}">第一页</a>
+
+            {% if page.has_previous %}
+                  <a href="{% url 'backweb:index' %}?page={{ page.previous_page_number }}&type={{ modl }}&search={{ search }}">上一页</a>
+            {% endif %}
+
+
+
+
+
+                 {% if page.has_previous %}
+                  <a href="{% url 'backweb:index' %}?page={{ page.previous_page_number }}&type={{ modl }}&search={{ search }}">{{ page.previous_page_number }}</a>
+            {% endif %}
+                 <a style="color:black;" href="#">{{ page.number }}</a>
+                 {% if page.has_next %}
+                  <a href="{% url 'backweb:index' %}?page={{ page.next_page_number }}&type={{ modl }}&search={{ search }}">{{ page.next_page_number }}</a>
+            {% endif %}
+
+
+
+
+            {% if page.has_next %}
+                  <a href="{% url 'backweb:index' %}?page={{ page.next_page_number }}&type={{ modl }}&search={{ search }}">下一页</a>
+            {% endif %}
+            <a href="{% url 'backweb:index' %}?page={{ page.paginator.num_pages }}&type={{ modl }}&search={{ search }}">最后一页</a>
+
+
+        </aside>
+    </div>
+</section>
+
+{% endblock %}
+
+

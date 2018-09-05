@@ -1,0 +1,144 @@
+{% extends 'app/base_main.html' %}
+{% load static %}
+{% block tite %}
+  主页
+{% endblock %}
+{% block cssjs %}
+    <script type="text/javascript" src="{% static 'app/js/jquery-ui.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'app/js/slide.js' %}"></script>
+{% endblock %}
+{% block a %}
+{{ block.super }}
+{% load static %}
+
+
+	<div class="search_bar clearfix">
+		<a href="index.html" class="logo fl"><img src="/static/app/images/logo.png"></a>
+		<div class="search_con fl">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>
+		<div class="guest_cart fr">
+			<a href="#" class="cart_name fl">我的购物车</a>
+			<div class="goods_count fl">1</div>
+		</div>
+	</div>
+
+	<div class="navbar_con">
+		<div class="navbar clearfix">
+			<div class="subnav_con fl">
+				<h1>全部商品分类</h1>	
+				<span></span>			
+				<ul class="subnav">
+					<li><a href="#" class="fruit">新鲜水果</a></li>
+					<li><a href="#" class="seafood">海鲜水产</a></li>
+					<li><a href="#" class="meet">猪牛羊肉</a></li>
+					<li><a href="#" class="egg">禽类蛋品</a></li>
+					<li><a href="#" class="vegetables">新鲜蔬菜</a></li>
+					<li><a href="#" class="ice">速冻食品</a></li>
+				</ul>
+			</div>
+			<ul class="navlist fl">
+				<li><a href="">首页</a></li>
+				<li class="interval">|</li>
+				<li><a href="">手机生鲜</a></li>
+				<li class="interval">|</li>
+				<li><a href="">抽奖</a></li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="breadcrumb">
+		<a href="#">全部分类</a>
+		<span>></span>
+		<a href="#">{{ page.1.categoryid.goodclassname }}</a>
+	</div>
+
+	<div class="main_wrap clearfix">
+		<div class="l_wrap fl clearfix">
+			<div class="new_goods">
+				<h3>新品推荐</h3>
+				<ul>
+					<li>
+						<a href="{% url 'app:detail' %}?good_id={{ page.1.id }}"><img src="/media/{{ page.1.goodsimg }}"></a>
+						<h4><a href="#">{{ page.1.goodsname }}</a></h4>
+						<div class="prize">￥{{ page.1.pirce }}</div>
+					</li>
+
+                    <li>
+						<a href="{% url 'app:detail' %}?good_id={{ page.2.id }}"><img src="/media/{{ page.2.goodsimg }}"></a>
+						<h4><a href="#">{{ page.2.goodsname }}</a></h4>
+						<div class="prize">￥{{ page.2.pirce }}</div>
+					</li>
+
+				</ul>
+			</div>
+		</div>
+
+		<div class="r_wrap fr clearfix">
+			<div class="sort_bar">
+				<a href="#" class="active">默认</a>
+				<a href="#">价格</a>
+				<a href="#">人气</a>
+			</div>
+
+			<ul class="goods_type_list clearfix">
+                {% for good in page %}
+				<li>
+					<a href="{% url 'app:detail' %}?good_id={{ good.id }}"><img src="/media/{{ good.goodsimg }}"></a>
+					<h4><a href="detail.html">{{ good.goodsname }}</a></h4>
+					<div class="operate">
+						<span class="prize">￥{{ good.pirce }}</span>
+						<span class="unit">{{ good.pirce }}/{{ good.specifics }}</span>
+						<a href="#" class="add_goods" title="加入购物车"></a>
+					</div>
+				</li>
+                {% endfor %}
+            </ul>
+            <br>
+			<div class="pagenation">
+
+
+                  <a href="{% url 'app:list' %}?page=1&type={{ page.1.categoryid.goodclassname }}">第一页</a>
+            {% if page.has_previous %}
+                  <a href="{% url 'app:list' %}?page={{ page.previous_page_number }}&type={{ page.1.categoryid.goodclassname }}">上一页</a>
+            {% endif %}
+
+
+                 {% if page.has_previous %}
+                  <a href="{% url 'app:list' %}?page={{ page.previous_page_number }}&type={{ page.1.categoryid.goodclassname }}">{{ page.previous_page_number }}</a>
+            {% endif %}
+                 <a style="color:black;" href="#">{{ page.number }}</a>
+                 {% if page.has_next %}
+                  <a href="{% url 'app:list' %}?page={{ page.next_page_number }}&type={{ page.1.categoryid.goodclassname }}">{{ page.next_page_number }}</a>
+            {% endif %}
+
+
+
+            {% if page.has_next %}
+                  <a href="{% url 'app:list' %}?page={{ page.next_page_number }}&type={{ page.1.categoryid.goodclassname }}">下一页</a>
+            {% endif %}
+            <a href="{% url 'app:list' %}?page={{ page.paginator.num_pages }}&type={{ page.1.categoryid.goodclassname }}">最后一页</a>
+
+			</div>
+		</div>
+	</div>
+
+	<div class="footer">
+		<div class="foot_link">
+			<a href="#">关于我们</a>
+			<span>|</span>
+			<a href="#">联系我们</a>
+			<span>|</span>
+			<a href="#">招聘人才</a>
+			<span>|</span>
+			<a href="#">友情链接</a>		
+		</div>
+		<p>CopyRight © 2016 北京天天生鲜信息技术有限公司 All Rights Reserved</p>
+		<p>电话：010-****888    京ICP备*******8号</p>
+	</div>
+	
+{% endblock %}
+
+
+

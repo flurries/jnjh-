@@ -1,0 +1,128 @@
+{% extends 'backweb/backbash.html' %}
+{% block title %}
+    后台管理修改
+{% endblock %}
+{% block cssjs %}
+{% endblock %}
+
+{% block content %}
+
+<section class="rt_wrap content mCustomScrollbar">
+    <div class="rt_content">
+        <div class="page_title">
+            <h0 class="fl">商品详情示例</h0>
+
+        </div>
+        <section>
+            <ul class="ulColumn2">
+                <form action="" enctype="multipart/form-data" method="post">
+                    {% csrf_token %}
+                    {# 文章标题 #}
+                    <li>
+                        <input type="text" name="id"  hidden="hidden"  value="{{ good.id }}"  >
+                        <span class="item_name" style="width:120px;">商品标题：</span>
+                        <input type="text" name="title" class="textbox textbox_295" value="{{ good.goodsname }}" />
+                    </li>
+                    {# 商品规格 #}
+                    <li>
+                        <span class="item_name" style="width:120px;">商品规格：</span>
+                        <input type="text" name="specifics" class="textbox textbox_295" value="{{ good.specifics }}"  />
+                    </li>
+                    {# 商品价格 #}
+                    <li>
+                        <span class="item_name" style="width:120px;">商品价格：</span>
+                        <input type="text" name="pirce" class="textbox textbox_295" value="{{ good.pirce }}" />
+                    </li>
+                      {# 分类 #}
+                    <li>
+                        <span class="item_name" style="width:120px;">分类：</span>
+                        {% for t in type %}
+                        {% if good.categoryid == t %}
+                            <label class="single_selection"><input type="radio" name="type" checked="checked" value="{{ t.id }}"/>{{ t.goodclassname }}</label>
+                        {% else %}
+                            <label class="single_selection"><input type="radio" name="type" value="{{ t.id }}"/>{{ t.goodclassname }}</label>
+                        {% endif %}
+                        {% endfor %}
+                    </li>
+
+                    {# 是否展示 #}
+                    <li>
+                        <span class="item_name" style="width:120px;">是否展示：</span>
+                        {% if good.is_delete == '0' %}
+                            <label class="single_selection"><input type="radio" name="delete" checked="checked" value="0"/>是</label>
+                            <label class="single_selection"><input type="radio" name="delete" value="1"/>否</label>
+                        {% else %}
+                            <label class="single_selection"><input type="radio" name="delete"  value="0"/>是</label>
+                            <label class="single_selection"><input type="radio" name="delete" checked="checked" value="1"/>否</label>
+                        {% endif %}
+                    </li>
+
+
+
+                    {# 是否推荐 #}
+                    <li>
+                        <span class="item_name" style="width:120px;">是否推荐：</span>
+                        {% if good.recommend == '1' %}
+                            <label class="single_selection"><input type="radio" name="recommend" checked="checked" value="1"/>是</label>
+                            <label class="single_selection"><input type="radio" name="recommend" value="0"/>否</label>
+                        {% else %}
+                            <label class="single_selection"><input type="radio" name="recommend"  value="1"/>是</label>
+                            <label class="single_selection"><input type="radio" name="recommend" checked="checked" value="0"/>否</label>
+                        {% endif %}
+                      </li>
+
+                      {# 简介 #}
+                    <li>
+                        <span class="item_name" style="width:120px;">商品简介：</span>
+                        <input type="text" name="introduction" class="textbox textbox_295"  value="{{ good.introduction }}" />
+                    </li>
+
+                    {#  图片  #}
+                    <li>
+                        {% load static %}
+                        <span class="item_name" style="width:120px;">上传图片：</span>
+                        <img src="/media/{{ good.goodsimg }}" width="150" height="100"/>
+                        <label class="uploadImg">
+                            <input type="file" name="filename"/>
+                            <span>上传图片</span>
+                        </label>
+                     </li>
+
+                    {# 文本框 #}
+                    <li>
+                        <span class="item_name" style="width:120px;">产品详情：</span>
+                        <textarea id="editor" name="content" type="text/plain" style="width:1024px;height:500px;margin-left:120px;margin-top:0;">
+                            {% autoescape off %}
+                                {{ good.introductions }}
+                            {% endautoescape %}
+                        </textarea>
+                    </li>
+                    <input type="submit"  class="link_btn"/>
+                </form>
+            </ul>
+        </section>
+    </div>
+</section>
+    {% load static %}
+<script src={% static 'backweb/js/ueditor.config.js' %}></script>
+<script src={% static 'backweb/js/ueditor.all.min.js'%}></script>
+
+<script type="text/javascript">
+    var ue = UE.getEditor('editor');
+</script>
+
+
+
+    <script>
+     var modalRich = $("#modal_rich");
+     var txtContent = $("#txt_content_add")
+    $("#sp_rich_add").click(function () {
+        var  text = textContent.val();
+        setTimeout(function () {
+            ue.setContent(text,false);
+        },666)
+    })
+    </script>
+</body>
+</html>
+{% endblock %}

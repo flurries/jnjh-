@@ -1,0 +1,128 @@
+{% extends 'app/base_main.html' %}
+{% load static %}
+{% block tite %}
+  购物车
+{% endblock %}
+{% block cssjs %}
+    <script type="text/javascript" src="{% static 'app/js/jquery-ui.min.js' %}"></script>
+	<script type="text/javascript" src="{% static 'app/js/slide.js' %}"></script>
+    <script type="text/javascript" src="{% static 'app/js/function.js' %}"></script>
+    <script>
+    function order(){
+        var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+        $.ajax({
+            url: '/app/order/',
+            type: 'POST',
+            dataType: 'json',
+            headers: {'X-CSRFToken': csrf},
+            success: function (data) {
+                if (data.code == '200'){
+                   location.href='/app/place_order/?order_id='+data.order_id
+                }
+            },
+        error: function (data) {
+        }
+    })
+}
+    </script>
+
+
+
+
+
+{% endblock %}
+{% block a %}
+{{ block.super }}
+{% load static %}
+
+
+    {# 搜索 #}
+	<div class="search_bar clearfix">
+		<a href="{% url 'app:index' %}" class="logo fl"><img src="{% static 'app/images/logo.png' %}"></a>
+		<div class="sub_page_name fl">|&nbsp;&nbsp;&nbsp;&nbsp;购物车</div>
+		<div class="search_con fr">
+			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" name="" value="搜索">
+		</div>
+	</div>
+
+	<div class="total_count">全部商品<em>{{ i }}</em>件</div>
+    {% if site == '0' %}
+         <span style="color: #e62e2e;font-size: 25px;margin-left: 120px">您还没有添加过地址无法结算,请前往个人中心填写，或直接结算填写</span>
+    {% endif %}
+    {# 表头 #}
+	<ul class="cart_list_th clearfix">
+		<li class="col01">商品名称</li>
+		<li class="col02">商品单位</li>
+		<li class="col03">商品价格</li>
+		<li class="col04">数量</li>
+		<li class="col05">小计</li>
+		<li class="col06">操作</li>
+	</ul>
+    {# 物品 #}
+    {% for cartgood in cartgoods %}
+        {% csrf_token %}
+	<ul class="cart_list_td clearfix"   id="good_{{ cartgood.id }}">
+        {% if cartgood.is_select %}
+        <li class="col01"><input type="checkbox" id="checked_{{ cartgood.id }}" onclick="radio({{ cartgood.id }})" checked></li>
+        {% else %}
+        <li class="col01"><input type="checkbox" id="checked_{{ cartgood.id }}" onclick="radio({{ cartgood.id }})"></li>
+        {% endif %}
+
+		<li class="col02"><img src="/media/{{ cartgood.goods.goodsimg }}"></li>
+		<li class="col03">{{ cartgood.goods.goodsname }}<br><em>{{ cartgood.goods.pirce }}元/{{ cartgood.goods.specifics }}</em></li>
+		<li class="col04">{{ cartgood.goods.specifics }}</li>
+		<li class="col05">{{ cartgood.goods.pirce }}元 </li>
+		<li class="col06">
+
+
+			<div class="num_add">
+				<a href="javascript:;" class="add fl" onclick="add_cart_goods({{ cartgood.id }})">+</a>
+				<input id="cartgoodnum_{{ cartgood.id }}"   type="text" class="num_show fl" value="{{ cartgood.c_num }}">
+				<a href="javascript:;" class="minus fl" onclick="minus_cart_goods({{ cartgood.id }})">-</a>
+			</div>
+
+
+
+		</li>
+		<li id="cartmoney_{{ cartgood.id }}"  class="col07">{{ cartgood.money }}元</li>
+		<li class="col08"><a href="javascript:;">删除</a></li>
+	</ul>
+    {% endfor %}
+    {# 支付 #}
+	<ul class="settlements">
+        <li class="col01"><input id="checkbox_all" onclick="allcheck()" type="checkbox"  ></li>
+
+
+
+
+		<li class="col02">全选</li>
+		<li class="col03">合计(不含运费)：<span>¥</span><em id="summoney"></em><br>共计<b id="cartallnum"></b>件商品</li>
+
+
+		<li class="col04"><a href="{% url 'app:place_order' %}" >去结算</a></li>
+
+	</ul>
+{#    <script>#}
+{#                function openwindows() {#}
+{#                           window.open('{% url 'app:add_adderss' %}','_blank','width=600,height=400,top=200px,left=400px')#}
+{#                }#}
+{#            </script>#}
+    {# 友情链接 #}
+	<div class="footer">
+		<div class="foot_link">
+			<a href="#">关于我们</a>
+			<span>|</span>
+			<a href="#">联系我们</a>
+			<span>|</span>
+			<a href="#">招聘人才</a>
+			<span>|</span>
+			<a href="#">友情链接</a>
+		</div>
+		<p>CopyRight © 2016 北京天天生鲜信息技术有限公司 All Rights Reserved</p>
+		<p>电话：010-****888    京ICP备*******8号</p>
+	</div>
+
+
+
+{% endblock %}
