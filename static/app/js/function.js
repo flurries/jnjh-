@@ -42,13 +42,14 @@ function add(good_id) {
     var value = $('#cartnum').attr('value')
     value = parseInt(value)+1
     $("#cartnum").attr("value",value);
-    $.post('/app/good_add_money/',{'good_id':good_id,'num': value}, function (data) {
+    $.post('/app/good_money/',{'good_id':good_id,'num': value}, function (data) {
         $('#total_value').html(data.money)
 
     })
 
 
 }
+
 
 //减少数量
 function minus(good_id) {
@@ -56,11 +57,12 @@ function minus(good_id) {
     value = parseInt(value)-1
     if (value <= 0){ value = 0}
     $("#cartnum").attr("value",value);
-    $.post('/app/good_minus_money/',{'good_id':good_id,'num': value}, function (data) {
+    $.post('/app/good_money/',{'good_id':good_id,'num': value}, function (data) {
         $('#total_value').html(data.money)
 
     })
 }
+
 
 //加入购物车
 function addcart(good_id) {
@@ -77,7 +79,8 @@ function addcart(good_id) {
             console.log(data)
             if (data.code == '200'){
                 alert('添加成功')
-                 $("#cartnum").attr("value",1);
+                $("#cartnum").attr("value",1);
+                $('#show_count').html(data.i)
             }
         },
         error:function(data){
@@ -112,9 +115,6 @@ function shop(good_id) {
 }
 
 
-
-
-
 // 添加购物车当中的数量
 function add_cart_goods(cartgood_id) {
 
@@ -131,7 +131,6 @@ function add_cart_goods(cartgood_id) {
         }
     })
 }
-
 
 
 //减少购物车中的数量
@@ -151,10 +150,6 @@ function minus_cart_goods(cartgood_id) {
         }
     })
 }
-
-
-
-
 
 
 //单选
@@ -204,6 +199,19 @@ function allcheck() {
 }
 
 
+//购物车删除
+function delshopcar(cartgood_id) {
+    $.get('/app/del_shop_car/', {'cartgood_id': cartgood_id} , function (data) {
+        if (data.code == '200') {
+            $('#good_' + cartgood_id).remove()
+            check_all()
+            money()
+            cartnum()
+        }}
+    )
+
+
+}
 
 
 

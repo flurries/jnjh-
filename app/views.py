@@ -16,20 +16,26 @@ def register(request):
     if request.method == 'GET':
         return render(request, 'app/login/register.html')
     if request.method == 'POST':
+        # 获得注册用户名、密码、确认密码、邮箱
         username = request.POST.get('username')
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
         email = request.POST.get('email')
-        allow = request.POST.get('allow')
+        # 验证信息输入完整
+        if not all([username, password1, password2, email]):
+            data = {'error': '信息不完整'}
+            return render(request, 'app/login/register.html', data)
+        # 使用用户名去数据库那同名的用户
         user = User.objects.filter(username=username).exists()
+        # 如果存在同名用户则重新注册
         if user:
             data = {'error': '用户名已存在'}
             return render(request, 'app/login/register.html', data)
+        # 用户名没有被注册过验证两次密码是否一致
         if password2!=password1:
             data = {'error': '两次密码不一致'}
             return render(request, 'app/login/register.html', data)
-        if allow is None:
-            return render(request, 'app/login/register.html')
+        # 通过全部验证可以常见账号
         User.objects.create(username=username, password=make_password(password1), email=email)
         return render(request, 'app/login/login.html')
 
@@ -37,38 +43,61 @@ def register(request):
 # 登录
 def login(request):
     if request.method == 'GET':
+        # 拿出之前在cookie中存储的名字做记住用户名
         name = request.COOKIES.get('name')
+        # 如果没有用户名就制空
         if name is None:
             name = ''
-        return render(request, 'app/login/login.html', {'name':name})
+        return render(request, 'app/login/login.html', {'name': name})
     if request.method == 'POST':
+        # 拿到登录名与密码
         username = request.POST.get('username')
         password = request.POST.get('password')
-        user = User.objects.filter(username=username).first()
+        # 判断输入信息是否完整
         if not all([username, password]):
             error = '请填完所有信息'
             return render(request, 'app/index.html', {'error': error})
+        # 拿到数据库对应用户
+        user = User.objects.filter(username=username).first()
+        # 没有用户
         if not user:
             data = {'error': '用户名不存在'}
             return render(request, 'app/index.html', data)
+        # 有用户
         else:
+            # 判断密码是否与数据库一致
             if check_password(password, user.password):
+                # 定义重定向去主页
                 res = HttpResponseRedirect(reverse('app:index'))
+                # 获得现在的时间并加上24小时(一天)
                 out_time =datetime.now() + timedelta(days=1)
-                ticket = get_ticket()
+                # 拿到之前用户提交的登录名
                 name = username
+                # 创建名字在在cookie中从存储时间为7天
                 time = datetime.now() + timedelta(days=7)
+                # 将用户之前提交的登录名写到cookie中
                 res.set_cookie('name', name, expires=time)
+                # 创建一个随机值用来保存在cookie与数据库中验证用户身份，
+                # 在用户退出时删除cookie中的该值与数据库的对应值
+                # get_ticket是utils工具里的随机函数方法
+                ticket = get_ticket()
+                # 获得现在的时间并加上24小时(一天)
+                out_time = datetime.now() + timedelta(days=1)
+                # 将随机数写进cookie中设定过期时间
                 res.set_cookie('ticket', ticket, expires=out_time)
+                # 在存储输数(验证用户在线上)的数据库中找用户的随机数
                 userticket = UserTicket.objects.filter(user=user)
+                # 如果不存在随机数，就在该数据库中添加该数据
                 if not userticket:
                     UserTicket.objects.create(user=user, ticket=ticket, out_time=out_time).save()
+                # 存在该数据，说明说明用户在重复登录，将这个随机数覆盖保存
                 else:
                     userticket = userticket.first()
                     userticket.ticket = ticket
-                    out_time = out_time
+                    userticket.out_time = out_time
                     userticket.save()
                 return res
+            # 密码不一致返回login页面
             else:
                 return HttpResponseRedirect(reverse('app:login'))
 
@@ -76,8 +105,11 @@ def login(request):
 # 退出
 def logout(request):
     if request.method == 'GET':
+        # 删除数据库中存储的该用户的验证随机值
         UserTicket.objects.get(user=request.user).delete()
+        # 设定重定向
         res = HttpResponseRedirect(reverse('app:index'))
+        # 清除在cookie中的随机值
         res.delete_cookie('ticket')
         return res
 
@@ -85,28 +117,49 @@ def logout(request):
 # 主页
 def index(request):
     if request.method == 'GET':
+        # 判断用户是否在线(中间件里判断用户在线并包用户信息写到request中)
         user =request.user
+        # 如果存在用户ID
         if user.id:
+            # 获得该用户的购物车
             cartnum = Cart.objects.filter(user=user)
+            # 设定初始值用来记录购物车商品种类
             i = 0
+            # 循环之前得到的用户购物车
             for _ in cartnum:
                 i += 1
+        # 用户不在线购物车数量为0
         else:
             i = 0
+        # 获得主页的轮播图
         img = CarouselImg.objects.all()
+        # 创建列表用来存放商品分类的数据
         goods_list =[]
+        # 创建字典用来将分类名与该分类数据绑定
         typegoods = {}
+        # 获得所有的可以展示商品
         goods = Goods.objects.filter(is_delete='0')
+        # 获得所有的商品分类
         types = Goodclass.objects.all()
+        # 循环所有的分类
         for type in types:
+            # 创建初始值，记录每种分类数据只需要4条
             count = 0
+            # 循环所有商品
             for good in goods:
+                # 判断该商品是本次循环的类型
                 if good.categoryid_id == type.id:
+                    # 类型相同记录值加1
                     count += 1
+                    # 将该数据加到列表中
                     goods_list.append(good)
+                    # 到记录值到4时结束本次循环
                     if count == 4:
+                        # 将类型名作为键，而保存在列表中的同类型的4条商品数据作为值，保存为键值对
                         typegoods[type.goodclassname] = goods_list
+                        # 将列表制空以便下次循环
                         goods_list = []
+                        # 跳出循环
                         break
         return render(request, 'app/index.html', {'i': i, 'imgs': img, 'typegoods': typegoods})
 
@@ -151,30 +204,13 @@ def list(request):
         return render(request, 'app/list.html', {'page': page})
 
 
-# 添加物品数量价格
+# 物品页面修改物品数量价格变动
 @csrf_exempt
-def good_add_money(request):
+def good_money(request):
     if request.method == 'POST':
         good_id = request.POST.get('good_id')
         num = request.POST.get('num')
         good = Goods.objects.get(id= good_id)
-        money = float(good.pirce) * float(num)
-        money = round(money, 3)
-        data = {
-            'code': 200,
-            'msg': '请求成功',
-            'money': money,
-        }
-        return JsonResponse(data)
-
-
-# 减少物品
-@csrf_exempt
-def good_minus_money(request):
-    if request.method == 'POST':
-        good_id = request.POST.get('good_id')
-        num = request.POST.get('num')
-        good = Goods.objects.get(id=good_id)
         money = float(good.pirce) * float(num)
         money = round(money, 3)
         data = {
@@ -199,9 +235,14 @@ def addcart(request):
                 usercart.save()
             else:
                 Cart.objects.create(user=user, goods=good, c_num=num)
+            cartnum = Cart.objects.filter(user=user)
+            i = 0
+            for _ in cartnum:
+                i += 1
             data = {
                 'code': 200,
                 'msg': '请求成功',
+                'i': i
             }
             return JsonResponse(data)
 
@@ -212,7 +253,7 @@ def shop(request):
         good_id = request.POST.get('good_id')
         num = request.POST.get('good')
         good = Goods.objects.filter(id=good_id).first()
-        sum_money = good.p
+        pass
 
 
 # 建一个公共的计算钱的方法
@@ -247,7 +288,7 @@ def cart(request):
         return HttpResponseRedirect(reverse('app:index'))
 
 
-# 添加购物车当中的数量
+# 修改购物车当中的数量
 @csrf_exempt
 def alter_cart_goods(request):
     if request.method == 'POST':
@@ -331,7 +372,23 @@ def goodsall(request):
         return JsonResponse(data)
 
 
-# 自动回调目前选中商品数量
+# 购物车界面购物车删除
+def del_shop_car(request):
+    if request.method == 'GET':
+        cart_id = request.GET.get('cartgood_id')
+        cart = Cart.objects.filter(id=cart_id).first()
+        cart.delete()
+        data = {
+            'code': 200,
+            'msg': '请求成功',
+        }
+        return JsonResponse(data)
+
+
+
+
+
+# 自动回调目前一共选中了选中了几件商品
 def cartnum(request):
     if request.method == 'GET':
         user = request.user

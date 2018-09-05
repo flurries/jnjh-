@@ -86,7 +86,7 @@
 
 		</li>
 		<li id="cartmoney_{{ cartgood.id }}"  class="col07">{{ cartgood.money }}元</li>
-		<li class="col08"><a href="javascript:;">删除</a></li>
+		<li class="col08"><a href="#"  onclick="delshopcar({{ cartgood.id }})">删除</a></li>
 	</ul>
     {% endfor %}
     {# 支付 #}

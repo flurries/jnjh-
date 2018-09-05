@@ -16,9 +16,7 @@ urlpatterns = [
     # 更多物品
     url(r'^list/', views.list, name='list'),
     # 添加物品数量
-    url(r'^good_add_money/$', views.good_add_money, name='good_add_money'),
-    #减少物品数量
-    url(r'^good_minus_money/$', views.good_minus_money, name='good_minus_money'),
+    url(r'^good_money/$', views.good_money, name='good_money'),
     # 添加购物车
     url(r'^addcart/', views.addcart, name='addcart'),
     # 修改购物车物品
@@ -31,6 +29,8 @@ urlpatterns = [
     url(r'^check_all/$', views.check_all, name='check_all'),
     # 全选与反选
     url(r'^goodsall/$', views.goodsall, name='goodsall'),
+    #  购物车界面购物车删除
+    url(r'^del_shop_car/$', views.del_shop_car, name='del_shop_car'),
     #自动回调目前选中商品数量
     url(r'^cartnum/$', views.cartnum, name='cartnum'),
     # # 创建订单
