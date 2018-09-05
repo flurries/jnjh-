@@ -1,10 +1,11 @@
-from django.urls import reverse
+from datetime import datetime
 
-from backweb.models import UserTicket, User
-
-from datetime import datetime, timedelta
 from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.deprecation import MiddlewareMixin
+
+from backweb.models import UserTicket
+
 
 class AuthMiddleWare(MiddlewareMixin):
 

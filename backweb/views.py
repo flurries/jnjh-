@@ -22,10 +22,10 @@ def login(request):
         user = User.objects.filter(username=username).first()
         if not all([username, password]):
             error = '请填完所有信息'
-            return render(request, 'app/index.html', {'error': error})
+            return render(request, 'backweb/index.html', {'error': error})
         if not user:
             data = {'error': '用户名不存在'}
-            return render(request, 'app/index.html', data)
+            return render(request, 'backweb/index.html', data)
         else:
             if check_password(password, user.password):
                 res = HttpResponseRedirect(reverse('backweb:index'))
@@ -43,6 +43,24 @@ def login(request):
                 return res
             else:
                 return HttpResponseRedirect(reverse('backweb:login'))
+
+
+# 退出
+def logout(request):
+    if request.method == 'GET':
+        # 删除数据库登录记录
+        UserTicket.objects.get(user=request.user).delete()
+        # 重定向回前台主页
+        res = HttpResponseRedirect(reverse('app:index'))
+        # 删除cookie的记录值
+        res.delete_cookie('ticket')
+        return res
+
+
+# 返回前台
+def app_index(request):
+    if request.method == 'GET':
+        return HttpResponseRedirect(reverse('app:index'))
 
 
 # 主页展示商品列表(分类展示、搜索)
@@ -66,7 +84,6 @@ def index(request):
         # 分类、搜索
         if search != 'None' and modl != 'all':
             goods = Goods.objects.filter(goodsname__icontains=search, categoryid=Goodclass.objects.get(goodclassname=modl))
-
         goods = Paginator(goods, 4)
         page = goods.page(page_num)
 
@@ -174,10 +191,10 @@ def alter(request):
         return HttpResponseRedirect(reverse('backweb:index'))
 
 
-# 商品列表展示
+# 商品分类列表展示
 def good_type(request):
     type = Goodclass.objects.all()
-    page_num = int(request.GET.get('page',1))
+    page_num = int(request.GET.get('page', 1))
     types = Paginator(type, 10)
     page = types.page(page_num)
     return render(request, 'backweb/type/type.html', {'page': page})
@@ -212,6 +229,8 @@ def alter_type(request):
         except:
             type.save()
         return HttpResponseRedirect(reverse('backweb:good_type'))
+
+
 # 删除商品分类名
 def del_type(requese):
     if requese.method == 'GET':

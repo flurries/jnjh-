@@ -5,6 +5,10 @@ from backweb import views
 urlpatterns = [
     # 登录后台
     url(r'^login/', views.login, name='login'),
+    # 退出
+    url(r'^logout/', views.logout, name='logout'),
+    # 返回前端网页
+    url(r'^app_index/', views.app_index, name='app_index'),
     # 主页显示商品列表
     url(r'^index/', views.index, name='index'),
     # 添加商品
