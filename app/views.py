@@ -886,7 +886,15 @@ def user_center_info(request):
         user = request.user
         visit = User_visit.objects.order_by('-visit_time')[0:5]
         return render(request, 'app/user/user_center_info.html', {'user': user, 'visit': visit})
-
+    if request.method == 'POST':
+        user = request.user
+        adderss = request.POST.get('adderss')
+        tel = request.POST.get('tel')
+        user.addersss=adderss
+        user.tel=tel
+        user.save()
+        visit = User_visit.objects.order_by('-visit_time')[0:5]
+        return render(request, 'app/user/user_center_info.html', {'user': user, 'visit': visit})
 
 # 搜索
 def seek(request):
