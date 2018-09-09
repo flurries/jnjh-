@@ -1,14 +1,13 @@
 {% extends 'app/base_main.html' %}
 {% load static %}
 {% block tite %}
-  主页
+  搜索
 {% endblock %}
 {% block cssjs %}
     <script type="text/javascript" src="{% static 'app/js/jquery-ui.min.js' %}"></script>
 	<script type="text/javascript" src="{% static 'app/js/slide.js' %}"></script>
 {% endblock %}
 {% block a %}
-
 {{ block.super }}
 {% load static %}
 
@@ -41,25 +40,21 @@
 	<div class="breadcrumb">
 		<a href="#">全部分类</a>
 		<span>></span>
-		<a href="#">{{ page.1.categoryid.goodclassname }}</a>
+		<a href="#">{{ seek }}</a>
 	</div>
 
 	<div class="main_wrap clearfix">
 		<div class="l_wrap fl clearfix">
 			<div class="new_goods">
-				<h3>新品推荐</h3>
+				<h3>推荐</h3>
 				<ul>
+                    {% if page.0 %}
 					<li>
 						<a href="{% url 'app:detail' %}?good_id={{ page.1.id }}"><img src="/media/{{ page.1.goodsimg }}"></a>
 						<h4><a href="#">{{ page.1.goodsname }}</a></h4>
 						<div class="prize">￥{{ page.1.pirce }}</div>
 					</li>
-
-                    <li>
-						<a href="{% url 'app:detail' %}?good_id={{ page.2.id }}"><img src="/media/{{ page.2.goodsimg }}"></a>
-						<h4><a href="#">{{ page.2.goodsname }}</a></h4>
-						<div class="prize">￥{{ page.2.pirce }}</div>
-					</li>
+                    {% endif %}
 
 				</ul>
 			</div>
@@ -73,14 +68,38 @@
 			</div>
 
 			<ul class="goods_type_list clearfix">
+
                 {% for good in page %}
+                    {% csrf_token %}
 				<li>
 					<a href="{% url 'app:detail' %}?good_id={{ good.id }}"><img src="/media/{{ good.goodsimg }}"></a>
 					<h4><a href="detail.html">{{ good.goodsname }}</a></h4>
 					<div class="operate">
 						<span class="prize">￥{{ good.pirce }}</span>
 						<span class="unit">{{ good.pirce }}/{{ good.specifics }}</span>
-						<a href="#" class="add_goods" title="加入购物车"></a>
+						<a id="addonecart" onclick="addonecart({{ good.id }},1)" class="add_goods" title="加入购物车"></a>
+                        <script>
+                            function addonecart(good_id,num) {
+                                var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+                                $.ajax({
+                                    url:'/app/addcart/',
+                                    type: 'POST',
+                                    dataType:'json',
+                                     headers:{'X-CSRFToken':csrf},
+                                    data:{'good_id': good_id, 'num':num},
+                                    success:function(data){
+                                        console.log(data)
+                                        if (data.code == '200'){
+                                            alert('添加成功')
+                                            $('#show_count').html(data.i)
+                                        }
+                                    },
+                                    error:function(data){
+                                        alert('添加失败')
+                                    }
+                                })
+                            }
+                        </script>
 					</div>
 				</li>
                 {% endfor %}
@@ -89,26 +108,21 @@
 			<div class="pagenation">
 
 
-                  <a href="{% url 'app:list' %}?page=1&type={{ page.1.categoryid.goodclassname }}">第一页</a>
+                  <a href="{% url 'app:seek' %}?page=1&seek={{ seek }}">第一页{{ seek }}</a>
             {% if page.has_previous %}
-                  <a href="{% url 'app:list' %}?page={{ page.previous_page_number }}&type={{ page.1.categoryid.goodclassname }}">上一页</a>
+                  <a href="{% url 'app:seek' %}?page={{ page.previous_page_number }}&seek={{ seek }}">上一页</a>
             {% endif %}
-
-
                  {% if page.has_previous %}
-                  <a href="{% url 'app:list' %}?page={{ page.previous_page_number }}&type={{ page.1.categoryid.goodclassname }}">{{ page.previous_page_number }}</a>
+                  <a href="{% url 'app:seek' %}?page={{ page.previous_page_number }}&seek={{ seek }}">{{ page.previous_page_number }}</a>
             {% endif %}
                  <a style="color:black;" href="#">{{ page.number }}</a>
                  {% if page.has_next %}
-                  <a href="{% url 'app:list' %}?page={{ page.next_page_number }}&type={{ page.1.categoryid.goodclassname }}">{{ page.next_page_number }}</a>
+                  <a href="{% url 'app:seek' %}?page={{ page.next_page_number }}&seek={{ seek }}">{{ page.next_page_number }}</a>
             {% endif %}
-
-
-
             {% if page.has_next %}
-                  <a href="{% url 'app:list' %}?page={{ page.next_page_number }}&type={{ page.1.categoryid.goodclassname }}">下一页</a>
+                  <a href="{% url 'app:seek' %}?page={{ page.next_page_number }}&seek={{ seek }}">下一页</a>
             {% endif %}
-            <a href="{% url 'app:list' %}?page={{ page.paginator.num_pages }}&type={{ page.1.categoryid.goodclassname }}">最后一页</a>
+            <a href="{% url 'app:seek' %}?page={{ page.paginator.num_pages }}&seek={{ seek }}">最后一页</a>
 
 			</div>
 		</div>

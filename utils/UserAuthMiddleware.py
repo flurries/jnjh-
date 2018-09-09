@@ -12,28 +12,37 @@ class AuthMiddleWare(MiddlewareMixin):
     def process_request(self,request):
         path = request.path
         # 在不登录时放过
-        list = ['/app/index/', '/app/detail/', '/app/addcart/','/app/cart/','/app/alter_cart_goods/', '/app/del_shop_car/', '/app/alter_cart_select/', '/app/money/', '/app/cartnum/', '/app/check_all/','/app/goodsall/', '/app/alter_cart_select/', '/app/good_money/', '/app/list/']
+        list = ['/app/login/', '/app/register/', '/app/index/', '/app/detail/', '/app/addcart/','/app/cart/','/app/alter_cart_goods/', '/app/del_shop_car/', '/app/alter_cart_select/', '/app/money/', '/app/cartnum/', '/app/check_all/','/app/goodsall/', '/app/alter_cart_select/', '/app/good_money/', '/app/list/', '/app/seek/']
         # 放过
-        on_list = ['/app/login/', '/app/register/', '/backweb/login/' ]
-        # 放过图片
-        if '/media/' in path:
-            return None
-        if path in on_list:
+        on_list = ['/backweb/login/' ]
+        # 放过图片、后台登录
+        if '/media/' in path or path in on_list:
             return None
         ticket = request.COOKIES.get('ticket')
-
         userticket = UserTicket.objects.filter(ticket=ticket).first()
-        if 'backweb' in path and userticket:
-            if userticket.user.is_admin != '1':
+        # 判断后台
+        if 'backweb' in path:
+            # 登录验证
+            if userticket:
+                # 验证超管身份
+                if userticket.user.is_admin != '1':
+                # 不是超管跳转后台登录
                  return HttpResponseRedirect(reverse('backweb:login'))
+            else:
+                return HttpResponseRedirect(reverse('backweb:login'))
+        # 有用户登录
         if userticket:
+            # 验证用户登录时间限制
             if userticket.out_time.replace(tzinfo=None) > datetime.now():
                 request.user = userticket.user
-            else :
+            # 超过时间将用户弹出登录
+            else:
                 userticket.delete()
                 return HttpResponseRedirect(reverse('app:login'))
+        # 放过特殊的地址
         elif path in list:
             return None
+        # 没有登录跳转登录
         else:
             return HttpResponseRedirect(reverse('app:login'))
 

@@ -65,6 +65,8 @@ urlpatterns = [
     url(r'^shop/$', views.shop, name='shop'),
     # 直接购买生成订单
     url(r'^shop_order/$', views.shop_order, name='shop_order'),
+    # 搜索
+    url(r'^seek/$', views.seek, name='seek'),
 
 
 

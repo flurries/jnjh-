@@ -886,3 +886,22 @@ def user_center_info(request):
         user = request.user
         visit = User_visit.objects.order_by('-visit_time')[0:5]
         return render(request, 'app/user/user_center_info.html', {'user': user, 'visit': visit})
+
+
+# 搜索
+def seek(request):
+    if request.method == 'GET':
+        seek = request.GET.get('seek')
+
+        goods = Goods.objects.filter(goodsname__icontains=seek)
+        page_num = int(request.GET.get('page', 1))
+        goods = Paginator(goods, 10)
+        page = goods.page(page_num)
+        user = request.user
+        if user:
+            if user.id:
+                i = len(Cart.objects.filter(user=user))
+        else:
+            i = len(request.session.get('goods'))
+        return render(request, 'app/seek/seek.html', {'page': page, 'i': i, 'seek': seek})
+

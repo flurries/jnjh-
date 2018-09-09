@@ -34,14 +34,14 @@
 
 {% block s %}
 	<div class="search_bar clearfix">
-		<a href="index.html" class="logo fl"><img src="/static/app/images/logo.png"></a>
+		<a href="{% url 'app:index' %}" class="logo fl"><img src="/static/app/images/logo.png"></a>
 		<div class="search_con fl">
-			<input type="text" class="input_text fl" name="" placeholder="搜索商品">
-			<input type="button" class="input_btn fr" name="" value="搜索">
+			<input type="text" class="input_text fl" id="seeks" name="seeks" placeholder="搜索商品">
+			<input type="button" class="input_btn fr" onclick="seekbutton()" value="搜索">
 		</div>
 		<div class="guest_cart fr">
 			<a href="{% url 'app:cart' %}" class="cart_name fl">我的购物车</a>
-			<div class="goods_count fl">1</div>
+			<div class="goods_count fl" id="show_count">{{ i }}</div>
 		</div>
 	</div>
 {% endblock %}
