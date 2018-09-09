@@ -61,6 +61,10 @@ urlpatterns = [
     url(r'^use_site/', views.use_site, name='use_site'),
     # 用户信息页面
     url(r'^user_center_info/', views.user_center_info, name='user_center_info'),
+    # 直接购买
+    url(r'^shop/$', views.shop, name='shop'),
+    # 直接购买生成订单
+    url(r'^shop_order/$', views.shop_order, name='shop_order'),
 
 
 

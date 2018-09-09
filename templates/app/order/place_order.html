@@ -58,7 +58,34 @@
                 }
             })
         }
+
+        function shopgood(id,num,status) {
+           var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+            alert('sadasd')
+            $.ajax({
+                url: '/app/shop_order/',
+                type: 'POST',
+                dataType: 'json',
+                headers: {'X-CSRFToken': csrf},
+                data: {'id':id, 'num': num, 'status': status},
+                success: function (data) {
+                    if (data.code == '200' ){
+			            $('.popup_con').fadeIn('fast', function() {
+				            setTimeout(function(){
+					            $('.popup_con').fadeOut('fast',function(){
+						            window.location.href = '/app/index/';
+					                });
+                            },2000)})
+                        }else if(data.code == '2000') {
+                        window.location.href = '/app/index/'
+                    }
+                    },
+            })
+        }
+
 	</script>
+{% endblock %}
+{% block s%}
 {% endblock %}
 {% block a %}
 {{ block.super }}
@@ -119,7 +146,7 @@
 
         {% for cart in carts %}
 		<ul class="goods_list_td clearfix">
-			<li class="col01">{{ forloop.counter}}</li>
+			<li class="col01">{{ forloop.counter}} </li>
 			<li class="col02"><img src="/media/{{ cart.goods.goodsimg }}"></li>
 			<li class="col03">{{ cart.goods.goodsname }}</li>
 			<li class="col04">{{ cart.goods.specifics }}</li>
@@ -129,13 +156,28 @@
 
 		</ul>
         {% endfor %}
+        {% if good.id  %}
+            <ul class="goods_list_td clearfix">
+            <li class="col01">1 </li>
+			<li class="col02"><img src="/media/{{ good.goodsimg }}"></li>
+			<li class="col03">{{ good.goodsname }}</li>
+			<li class="col04">{{ good.specifics }}</li>
+			<li class="col05">{{ good.pirce }}元</li>
+			<li class="col06">{{ num }}</li>
+			<li class="col07">{{ money }}元</li>
+            </ul>
+
+        {% endif %}
+
+
 	</div>
 	<h3 class="common_title">总金额结算</h3>
 	<div class="common_list_con clearfix">
 		<div class="settle_con">
 			<div class="total_goods_count">共<em>{{ num }}</em>件商品，总金额<b>{{ sum_money }}元</b></div>
 			<div class="transit">运费：<b>10元</b></div>
-			<div class="total_pay">实付款：<b>{{ sum_money|add:10 }}</b></div>
+			<div class="total_pay">实付款：<b>{{ sum_money|add:10}}</b></div>
+
 		</div>
 	</div>
 	<div class="order_submit clearfix">
@@ -143,18 +185,27 @@
 
         {% if site == '1' %}
             {% if pay == '0' %}
+                {# 购物车支付 #}
                 <a><button onclick="order_pay('{{ order_id }}',1)" >支付</button></a>
                 <a><button onclick="order_pay('{{ order_id }}',0)" style="margin-right:20px ">稍后支付</button></a>
             {% else %}
+                {# 支付稍后支付 #}
                 <a><button onclick="order_status('{{ order_id }}',1)" >支付</button></a>
                 <a><button onclick="order_status('{{ order_id }}',2)" style="margin-right:20px ">稍后支付</button></a>
             {% endif %}
+        {% elif  good.id %}
+            {# 直接购买 #}
+            <a><button onclick="shopgood({{ good.id }},{{ goodnum }},1)" >支付</button></a>
+            <a><button onclick="shopgood({{ good.id }},{{ goodnum }},0)" style="margin-right:20px ">稍后支付</button></a>
+
         {% else %}
+            {# 添加地址 #}
             <a><button onclick="openwindows()" >支付</button></a>
             <a><button onclick="openwindows()" style="margin-right:20px ">稍后支付</button></a>
         {% endif %}
 	</div>
     <script>
+
         function openwindows() {
             window.open('{% url 'app:add_adderss' %}','_blank','width=600,height=400,top=200px,left=400px')
         }

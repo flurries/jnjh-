@@ -15,7 +15,7 @@ money()
 function check_all() {
     $.get('/app/check_all/', function (data) {
 
-        if (data.ch == '1'){
+        if (data.checkall == '1'){
             $('#checkbox_all').prop("checked",true);
         }else {
             $('#checkbox_all').prop("checked",false);
@@ -43,6 +43,7 @@ function add(good_id) {
     value = parseInt(value)+1
     $("#cartnum").attr("value",value);
     $.post('/app/good_money/',{'good_id':good_id,'num': value}, function (data) {
+
         $('#total_value').html(data.money)
 
     })
@@ -58,6 +59,7 @@ function minus(good_id) {
     if (value <= 0){ value = 0}
     $("#cartnum").attr("value",value);
     $.post('/app/good_money/',{'good_id':good_id,'num': value}, function (data) {
+
         $('#total_value').html(data.money)
 
     })
@@ -92,26 +94,8 @@ function addcart(good_id) {
 
 //直接购买
 function shop(good_id) {
-
     var num =  $('#cartnum').attr('value')
-    var csrf = $('input[name="csrfmiddlewaretoken"]').val()
-    $.ajax({
-        url:'/app/shop/',
-        type: 'POST',
-        dataType:'json',
-         headers:{'X-CSRFToken':csrf},
-        data:{'good_id': good_id, 'num':num},
-        success:function(data){
-            console.log(data)
-            if (data.code == '200'){
-                alert('添加成功')
-                 $("#cartnum").attr("value",1);
-            }
-        },
-        error:function(data){
-            alert('添加失败')
-        }
-    })
+    location.href = '/app/shop/?good_id='+ good_id +'&num='+ num
 }
 
 
@@ -120,11 +104,12 @@ function add_cart_goods(cartgood_id) {
 
     var value = $('#cartgoodnum_'+cartgood_id).attr('value')
     value = parseInt(value)+1
+
     $('#cartgoodnum_'+cartgood_id).attr("value",value);
     $.post('/app/alter_cart_goods/',{'cartgood_id':cartgood_id,'num': value}, function (data) {
         if (data.code == '200'){
-            var cartmoney = parseFloat(data.pirce) * value
 
+            var cartmoney = parseFloat(data.pirce) * value
             $('#cartmoney_'+cartgood_id).html(String(cartmoney.toFixed(2))+'元')
             money()
 
@@ -153,8 +138,9 @@ function minus_cart_goods(cartgood_id) {
 
 
 //单选
-function radio(cartgood_id) {
+function radioa(cartgood_id) {
     var csrf = $('input[name="csrfmiddlewaretoken"]').val()
+
     $.ajax({
         url: '/app/alter_cart_select/',
         type: 'POST',
@@ -188,7 +174,6 @@ function allcheck() {
                 $('#checked_'+data.cartlist[i]).prop("checked",true);
             }
         }else {
-
             for(var i = 0 ; i <= data.cartlist.length; i++){
                  $('#checked_'+data.cartlist[i]).prop("checked",false);
             }

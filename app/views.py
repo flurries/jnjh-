@@ -69,6 +69,8 @@ def login(request):
             if check_password(password, user.password):
                 # 定义重定向去主页
                 res = HttpResponseRedirect(reverse('app:index'))
+                # 将session中的登录状态写为True
+                request.session['login_status'] = True
                 # 获得现在的时间并加上24小时(一天)
                 out_time =datetime.now() + timedelta(days=1)
                 # 拿到之前用户提交的登录名
@@ -111,6 +113,7 @@ def logout(request):
         res = HttpResponseRedirect(reverse('app:index'))
         # 清除在cookie中的随机值
         res.delete_cookie('ticket')
+        request.session['login_status'] = False
         return res
 
 
@@ -121,16 +124,9 @@ def index(request):
         user =request.user
         # 如果存在用户ID
         if user.id:
-            # 获得该用户的购物车
-            cartnum = Cart.objects.filter(user=user)
-            # 设定初始值用来记录购物车商品种类
-            i = 0
-            # 循环之前得到的用户购物车
-            for _ in cartnum:
-                i += 1
-        # 用户不在线购物车数量为0
+            i = len(Cart.objects.filter(user=user))
         else:
-            i = 0
+            i = len(request.session.get('goods'))
         # 获得主页的轮播图
         img = CarouselImg.objects.all()
         # 创建列表用来存放商品分类的数据
@@ -169,13 +165,9 @@ def detail(request):
     if request.method == 'GET':
         user = request.user
         if user.id:
-            cartnum = Cart.objects.filter(user=user)
-            i = 0
-            #获得购物车数量
-            for _ in cartnum:
-                i += 1
+            i = len(Cart.objects.filter(user=user))
         else:
-            i = 0
+            i = len(request.session.get('goods'))
         good_id = request.GET.get('good_id')
         good = Goods.objects.get(id=good_id)
         goods = Goods.objects.filter(categoryid=good.categoryid, recommend=1)
@@ -212,7 +204,7 @@ def good_money(request):
         num = request.POST.get('num')
         good = Goods.objects.get(id= good_id)
         money = float(good.pirce) * float(num)
-        money = round(money, 3)
+        money = '%.2f' % money
         data = {
             'code': 200,
             'msg': '请求成功',
@@ -225,20 +217,65 @@ def good_money(request):
 def addcart(request):
     if request.method == 'POST':
         user = request.user
+        good_id = request.POST.get('good_id')
+        num = request.POST.get('num')
+        price = Goods.objects.filter(id=good_id).first().pirce
+        imgname = Goods.objects.filter(id=good_id).first().goodsimg.name
+        name = Goods.objects.filter(id=good_id).first().goodsname
+        specifics = Goods.objects.filter(id=good_id).first().specifics
+        goods_list = [good_id, num, '1', price, imgname, name, specifics]
         if user.id:
-            good_id = request.POST.get('good_id')
             good = Goods.objects.get(id=good_id)
-            num = request.POST.get('num')
             usercart = Cart.objects.filter(user=user,goods=good).first()
             if usercart:
                 usercart.c_num += int(num)
                 usercart.save()
             else:
                 Cart.objects.create(user=user, goods=good, c_num=num)
-            cartnum = Cart.objects.filter(user=user)
-            i = 0
-            for _ in cartnum:
-                i += 1
+            i = len(Cart.objects.filter(user=user))
+            data = {
+                'code': 200,
+                'msg': '请求成功',
+                'i': i
+            }
+            return JsonResponse(data)
+        else:
+            # 用户没有登录将添加的购物数据加到session中
+            request.session['login_status'] = False
+            # 判断session中是否存在goods字段（是否第一次存数据）
+            if request.session.get('goods'):
+                # 创建一个标识
+                flag = 0
+                # 循环session中的数据
+                goods = request.session['goods']
+                for session_goods in goods:
+                    # 判断session中物品id是否与现在的相同
+                    if session_goods[0] == good_id:
+                        # id相同添加数量
+                        session_goods[1] = int(session_goods[1]) + int(num)
+
+                        # 将标识改为1
+                        flag = 1
+                        # 将数据写回session中
+                        request.session['goods'] = goods
+                        # session购物车的种类
+                        i = len(request.session['goods'])
+                # 判断标识为0时，创建新的sessiongoods数据
+                if not flag:
+                    # 获得session中的购物数据
+                    goods = request.session['goods']
+                    # 向购物数据中添加新的数据
+                    goods.append(goods_list)
+                    # 将数据写回session中
+                    request.session['goods'] = goods
+                    # session购物车的种类
+                    i = len(request.session['goods'])
+            else:
+                # 首次添加商品的信息到session中，存入格式为列表
+                goods = []
+                goods.append(goods_list)
+                request.session['goods'] = goods
+                i = 1
             data = {
                 'code': 200,
                 'msg': '请求成功',
@@ -247,24 +284,76 @@ def addcart(request):
             return JsonResponse(data)
 
 
-#立即购买
+#立即购买页面数据
 def shop(request):
-    if request.method == 'get':
-        good_id = request.POST.get('good_id')
-        num = request.POST.get('good')
-        good = Goods.objects.filter(id=good_id).first()
-        pass
+    if request.method == 'GET':
+        user = request.user
+        good_id = request.GET.get('good_id')
+        num = request.GET.get('num')
+        good= Goods.objects.filter(id=good_id).first()
+        money = '%.2f' % (good.pirce * int(num))
+        site = Adderss.objects.filter(user=user, is_select=1).first()
+        if site:
+            tel = miss_tel(site.tel)
+            adderss = site
+        data = {
+            'adderss': site,
+            'good': good,
+            'money': money,
+            'goodnum':num,
+            'num': 1,
+            'sum_money': float(money),
+        }
+        return render(request, 'app/order/place_order.html', data)
+
+
+# 立即购买生成订单
+def shop_order(request):
+    if request.method == 'POST':
+        user = request.user
+        id = request.POST.get('id')
+        num = request.POST.get('num')
+        status = request.POST.get('status')
+        o_num = get_order()
+        good =Goods.objects.filter(id=id).first()
+        money = '%.2f' %(good.pirce * int(num) +10)
+        adderss = Adderss.objects.filter(user=user, is_select=1).first()
+        order = Order.objects.create(user=user,
+                                     o_num=o_num,
+                                     o_money=money,
+                                     o_status=status,
+                                     adderss=adderss)
+        OrderGoods.objects.create(order=order,
+                                  goods=good,
+                                  goods_num=num,
+                                  goods_money=money)
+        adderss.is_select = 0
+        adderss.save()
+        adderss = Adderss.objects.filter(user=user, is_default=1).first()
+        adderss.is_select = 1
+        adderss.save()
+        if status == '1':
+            return JsonResponse({'code': 200, 'msg': "请求成功", })
+        else:
+            return JsonResponse({'code': 2000, 'msg': "请求成功", })
 
 
 # 建一个公共的计算钱的方法
 def money(request):
     if request.method == 'GET':
-        user = request.user
-        cartmoneys = Cart.objects.filter(user=user, is_select=1)
         money = 0
-        for cartmoney in cartmoneys:
-            money += int(cartmoney.c_num) * float(cartmoney.goods.pirce)
-        money = round(money,3)
+        if request.user.id:
+            user = request.user
+            cartmoneys = Cart.objects.filter(user=user, is_select=1)
+            for cartmoney in cartmoneys:
+                money += int(cartmoney.c_num) * float(cartmoney.goods.pirce)
+        else:
+            goods = request.session.get('goods')
+            i = len(goods)
+            for index in range(i):
+                if goods[index][2] == '1':
+                    money += int(goods[index][1])*goods[index][3]
+        money = '%.2f' % money
         data = {
             'code': 200,
             'msg': '请求成功',
@@ -280,26 +369,50 @@ def cart(request):
         if user.id:
             cartgoods = Cart.objects.filter(user=user)
             for cart in cartgoods:
-                cart.money = round(cart.c_num * cart.goods.pirce, 2)
+                cart.money = '%.2f' % (cart.c_num * cart.goods.pirce)
             i = 0
             for cartgood in cartgoods:
                 i += 1
             return render(request, 'app/cart/cart.html', {'cartgoods': cartgoods, 'i': i})
-        return HttpResponseRedirect(reverse('app:index'))
+        else:
+            # 从session中拿商品的id
+            goods = request.session.get('goods')
+            for good in goods:
+                good.append('%.2f' % (int(good[1])*good[3]))
+            i = len(goods)
+            return render(request, 'app/cart/cart.html', {'goods': goods, 'i': i})
 
 
 # 修改购物车当中的数量
 @csrf_exempt
 def alter_cart_goods(request):
     if request.method == 'POST':
-        cartgood_id = request.POST.get('cartgood_id')
+        user = request.user
+        id = request.POST.get('cartgood_id')
         num = request.POST.get('num')
-        cart = Cart.objects.get(id=cartgood_id)
-        pirce = cart.goods.pirce
-        cart.c_num = num
-        cart.save()
-        if num == '0':
-            cart.delete()
+        if user.id:
+            cart = Cart.objects.get(id=id)
+            pirce = cart.goods.pirce
+            cart.c_num = num
+            cart.save()
+            if num == '0':
+                cart.delete()
+        else:
+            goods = request.session.get('goods')
+            i = len(goods)
+            if num == '0':
+                for index in range(i):
+                    if id == goods[index][0]:
+                        goods.pop(index)
+                        pirce = 0
+                        break
+            else:
+                for index in range(i):
+                    if id == goods[index][0]:
+                        goods[index][1] = num
+                        pirce = goods[index][3]
+            # 将数据写回session中
+            request.session['goods'] = goods
         data = {
             'code': 200,
             'msg': '请求成功',
@@ -312,11 +425,22 @@ def alter_cart_goods(request):
 def alter_cart_select(request):
     if request.method == 'POST':
         user = request.user
-        cart_id = request.POST.get('cartgood_id')
-        cart = Cart.objects.get(id = cart_id)
-        cart.is_select = 0 if cart.is_select else 1
-        cart.save()
-        select = cart.is_select
+        id = request.POST.get('cartgood_id')
+        if user.id:
+            cart = Cart.objects.get(id=id)
+            cart.is_select = 0 if cart.is_select else 1
+            cart.save()
+            select = cart.is_select
+        else:
+            goods = request.session.get('goods')
+            i = len(goods)
+            for good in goods:
+                if good[0] == id:
+                    good[2] = '0' if good[2] == '1' else '1'
+                    select = good[2]
+                    break
+            # 将数据写回session中
+            request.session['goods'] = goods
         data = {
             'code': 200,
             'msg': '请求成功',
@@ -330,13 +454,21 @@ def alter_cart_select(request):
 def check_all(request):
     if request.method == 'GET':
         user = request.user
-        checkbox = Cart.objects.filter(is_select=0, user=user).exists()
-        ch = '0' if checkbox else '1'
+        if user.id:
+            checkbox = Cart.objects.filter(is_select=0, user=user).exists()
+            checkall = '0' if checkbox else '1'
+        else:
+            checkall = '1'
+            goods = request.session.get('goods')
+            i = len(goods)
+            for index in range(i):
+                if goods[index][2] == '0' :
+                    checkall = '0'
+                    break
         data = {
             'code': 200,
             'msg': '请求成功',
-            'ch': ch,
-
+            'checkall': checkall,
         }
         return JsonResponse(data)
 
@@ -344,24 +476,42 @@ def check_all(request):
 # 全选与反选
 def goodsall(request):
     if request.method == 'GET':
-        user = request.user
-        checkbox = Cart.objects.filter(is_select=0, user=user).exists()
-
-        if checkbox:
-            for cart in Cart.objects.filter(user=user):
-                cart.is_select = 1
-                cart.save()
-            status = '1'
-        else:
-            for cart in Cart.objects.filter(user=user):
-                cart.is_select = 0
-                cart.save()
-            status = '0'
-        cartall = Cart.objects.filter(user=user)
         cartlist = []
-        for cart in cartall:
-            cartlist.append(cart.id)
-
+        user = request.user
+        if user.id:
+            checkbox = Cart.objects.filter(is_select=0, user=user).exists()
+            if checkbox:
+                for cart in Cart.objects.filter(user=user):
+                    cart.is_select = 1
+                    cart.save()
+                status = '1'
+            else:
+                for cart in Cart.objects.filter(user=user):
+                    cart.is_select = 0
+                    cart.save()
+                status = '0'
+            cartall = Cart.objects.filter(user=user)
+            for cart in cartall:
+                cartlist.append(cart.id)
+        else:
+            goods = request.session.get('goods')
+            i = len(goods)
+            flag = '1'
+            status = '0'
+            for index in range(i):
+                if goods[index][2] == '0':
+                    flag = '0'
+                    status = '1'
+                    break
+            for index in range(i):
+                if flag == '1':
+                    goods[index][2] = '0'
+                else:
+                    goods[index][2] = '1'
+            for good in goods:
+                cartlist.append(good[0])
+            # 将数据写回session中
+            request.session['goods'] = goods
         data = {
             'code': 200,
             'msg': '请求成功',
@@ -375,27 +525,46 @@ def goodsall(request):
 # 购物车界面购物车删除
 def del_shop_car(request):
     if request.method == 'GET':
-        cart_id = request.GET.get('cartgood_id')
-        cart = Cart.objects.filter(id=cart_id).first()
-        cart.delete()
-        data = {
-            'code': 200,
-            'msg': '请求成功',
-        }
-        return JsonResponse(data)
-
-
-
+        id = request.GET.get('cartgood_id')
+        if request.user.id:
+            cart = Cart.objects.filter(id=id).first()
+            cart.delete()
+            data = {
+                'code': 200,
+                'msg': '请求成功',
+            }
+            return JsonResponse(data)
+        else:
+            goods = request.session.get('goods')
+            i = len(goods)
+            for index in range(i):
+                if id == goods[index][0]:
+                    goods.pop(index)
+                    break
+            # 将数据写回session中
+            request.session['goods'] = goods
+            data = {
+                'code': 200,
+                'msg': '请求成功',
+            }
+            return JsonResponse(data)
 
 
 # 自动回调目前一共选中了选中了几件商品
 def cartnum(request):
     if request.method == 'GET':
-        user = request.user
-        cart = Cart.objects.filter(user=user, is_select=1)
         selectncartnum = 0
-        for _ in cart:
-            selectncartnum += 1
+        user = request.user
+        if user.id:
+            cart = Cart.objects.filter(user=user, is_select=1)
+            for _ in cart:
+                selectncartnum += 1
+        else:
+            goods = request.session.get('goods')
+            i = len(goods)
+            for index in range(i):
+                if '1' == goods[index][2]:
+                    selectncartnum += 1
         data = {
             'code': 200,
             'msg': '请求成功',

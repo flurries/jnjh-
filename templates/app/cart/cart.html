@@ -31,10 +31,11 @@
 
 
 {% endblock %}
+{% block s%}
+{% endblock %}
 {% block a %}
 {{ block.super }}
 {% load static %}
-
 
     {# 搜索 #}
 	<div class="search_bar clearfix">
@@ -47,9 +48,6 @@
 	</div>
 
 	<div class="total_count">全部商品<em>{{ i }}</em>件</div>
-    {% if site == '0' %}
-         <span style="color: #e62e2e;font-size: 25px;margin-left: 120px">您还没有添加过地址无法结算,请前往个人中心填写，或直接结算填写</span>
-    {% endif %}
     {# 表头 #}
 	<ul class="cart_list_th clearfix">
 		<li class="col01">商品名称</li>
@@ -60,35 +58,89 @@
 		<li class="col06">操作</li>
 	</ul>
     {# 物品 #}
-    {% for cartgood in cartgoods %}
-        {% csrf_token %}
-	<ul class="cart_list_td clearfix"   id="good_{{ cartgood.id }}">
-        {% if cartgood.is_select %}
-        <li class="col01"><input type="checkbox" id="checked_{{ cartgood.id }}" onclick="radio({{ cartgood.id }})" checked></li>
+    {% if user.id %}
+
+        {% for cartgood in cartgoods %}
+            {% csrf_token %}
+            <ul class="cart_list_td clearfix"   id="good_{{ cartgood.id }}">
+            {% if cartgood.is_select %}
+            <li class="col01"><input type="checkbox" id="checked_{{ cartgood.id }}" onclick="radioa({{ cartgood.id }})" checked></li>
+            {% else %}
+            <li class="col01"><input type="checkbox" id="checked_{{ cartgood.id }}" onclick="radioa({{ cartgood.id }})"></li>
+            {% endif %}
+
+            <li class="col02"><img src="/media/{{ cartgood.goods.goodsimg }}"></li>
+            <li class="col03">{{ cartgood.goods.goodsname }}<br><em>{{ cartgood.goods.pirce }}元/{{ cartgood.goods.specifics }}</em></li>
+            <li class="col04">{{ cartgood.goods.specifics }}</li>
+            <li class="col05">{{ cartgood.goods.pirce }}元 </li>
+            <li class="col06">
+
+
+                <div class="num_add">
+                    <a href="javascript:;" class="add fl" onclick="add_cart_goods({{ cartgood.id }})">+</a>
+                    <input id="cartgoodnum_{{ cartgood.id }}"   type="text" class="num_show fl" value="{{ cartgood.c_num }}">
+                    <a href="javascript:;" class="minus fl" onclick="minus_cart_goods({{ cartgood.id }})">-</a>
+                </div>
+
+
+
+            </li>
+            <li id="cartmoney_{{ cartgood.id }}"  class="col07">{{ cartgood.money }}元</li>
+            <li class="col08"><a href="#"  onclick="delshopcar({{ cartgood.id }})">删除</a></li>
+        </ul>
+        {% endfor %}
+
+        {# session展示 #}
         {% else %}
-        <li class="col01"><input type="checkbox" id="checked_{{ cartgood.id }}" onclick="radio({{ cartgood.id }})"></li>
-        {% endif %}
+         {% for good in goods %}
+            {% csrf_token %}
+         <ul class="cart_list_td clearfix"   id="good_{{ good.0 }}">
+            {% if good.2 == '1' %}
+            <li class="col01"><input type="checkbox" id="checked_{{ good.0 }}" onclick="radioa({{ good.0 }})" checked></li>
+            {% else %}
+            <li class="col01"><input type="checkbox" id="checked_{{ good.0 }}" onclick="radioa({{ good.0 }})"></li>
+            {% endif %}
 
-		<li class="col02"><img src="/media/{{ cartgood.goods.goodsimg }}"></li>
-		<li class="col03">{{ cartgood.goods.goodsname }}<br><em>{{ cartgood.goods.pirce }}元/{{ cartgood.goods.specifics }}</em></li>
-		<li class="col04">{{ cartgood.goods.specifics }}</li>
-		<li class="col05">{{ cartgood.goods.pirce }}元 </li>
-		<li class="col06">
-
-
-			<div class="num_add">
-				<a href="javascript:;" class="add fl" onclick="add_cart_goods({{ cartgood.id }})">+</a>
-				<input id="cartgoodnum_{{ cartgood.id }}"   type="text" class="num_show fl" value="{{ cartgood.c_num }}">
-				<a href="javascript:;" class="minus fl" onclick="minus_cart_goods({{ cartgood.id }})">-</a>
-			</div>
-
+            <li class="col02"><img src="/media/{{ good.4 }}"></li>
+            <li class="col03">{{ good.5 }}<br><em>{{ good.3 }}元/{{ good.6 }}</em></li>
+            <li class="col04">{{ good.6 }}</li>
+            <li class="col05">{{ good.3}}元 </li>
+            <li class="col06">
 
 
-		</li>
-		<li id="cartmoney_{{ cartgood.id }}"  class="col07">{{ cartgood.money }}元</li>
-		<li class="col08"><a href="#"  onclick="delshopcar({{ cartgood.id }})">删除</a></li>
-	</ul>
-    {% endfor %}
+                <div class="num_add">
+                    <a href="javascript:;" class="add fl" onclick="add_cart_goods({{ good.0 }})">+</a>
+                    <input id="cartgoodnum_{{ good.0 }}"   type="text" class="num_show fl" value="{{ good.1 }}">
+                    <a href="javascript:;" class="minus fl" onclick="minus_cart_goods({{ good.0 }})">-</a>
+                </div>
+
+
+
+            </li>
+            <li id="cartmoney_{{ good.0 }}"  class="col07">{{ good.7 }}元</li>
+            <li class="col08"><a href="#"  onclick="delshopcar({{ good.0 }})">删除</a></li>
+         </ul>
+        {% endfor %}
+
+
+
+    {% endif %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     {# 支付 #}
 	<ul class="settlements">
         <li class="col01"><input id="checkbox_all" onclick="allcheck()" type="checkbox"  ></li>
